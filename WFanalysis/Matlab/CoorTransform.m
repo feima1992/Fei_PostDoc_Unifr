@@ -1,7 +1,10 @@
-classdef CoorTransform < handle    
+classdef CoorTransform < handle
     %% Properties
     properties
-
+        % folder
+        folder
+        mouse
+        session
         % image
         refImage % reference image
         recImage % record image
@@ -10,7 +13,7 @@ classdef CoorTransform < handle
         % coordinates
         refPointsCoorPixel = {} % reference points in pixel
         refPointsCoorReal = {[1,0], [2,0]}; % default ref points in mm
-        bregmaCoorReal = [0, -0.5]; % default bregma point in mm
+        bregmaCoorReal = [0, 0]; % default bregma point in mm
         bregmaCoorPixel % bregma point in pixel
         winCenterCoorReal = [-2.5, -0.5]; % default window center in mm
         winCenterCoorPixel % window center in pixel
@@ -28,67 +31,88 @@ classdef CoorTransform < handle
     end
     %% Methods
     methods
-    % constructor
+        % constructor
         function  obj = CoorTransform()
+            % get the folder of the reference image
+            funcPath = mfilename('fullpath');
+            funcDisk = funcPath(1:3);
+            obj.folder = [funcDisk, 'users\Fei\DataAnalysis\Utilities\CoorTransform\'];
         end
 
         function obj = Init(obj, refImage, recImage)
-            % check the input arguments
+            % set the reference image and record image
             if nargin == 3
                 if isfile(refImage)
                     obj.refImage = imread(refImage);
                 else
-                    error('The reference image does not exist');
+                    refIm= findFile(obj.folder, refImage);
+                    if height(refIm) == 1
+                        obj.refImage = imread(refIm.path);
+                    else
+                        error('The reference image does not exist or multiple images are found');
+                    end
                 end
                 if isfile(recImage)
                     obj.recImage = imadjust(imread(recImage));
+                    obj.mouse = findMouse(recImage);
+                    obj.session = findSession(recImage);
                 else
-                    error('The record image does not exist');
+                    recIm = findFile(obj.folder, recImage);
+                    if height(recIm) == 1
+                        obj.recImage = imadjust(imread(recIm.path));
+                        obj.mouse = findMouse(recIm.path);
+                        obj.session = findSession(recIm.path);
+                    else
+                        error('The record image does not exist or multiple images are found');
+                    end
                 end
             elseif nargin == 2
                 if isfile(refImage)
                     obj.refImage = imread(refImage);
                 else
-                    error('The reference image does not exist');
+                    refIm = findFile(obj.folder, refImage);
+                    if height(refIm) == 1
+                        obj.refImage = imread(refIm.path);
+                    else
+                        error('The reference image does not exist or multiple images are found');
+                    end
                 end
             end
 
             % set the reference image if not set
             if isempty(obj.refImage)
-                % get the disk name
-                funcPath = mfilename('fullpath');
-                funcDisk = funcPath(1:3);
-                refImPath = [funcDisk, 'users\Fei\DataAnalysis\Utilities\CoorTransform\*.*'];
-                [refImName, refImPath] = uigetfile(refImPath, 'Select the reference image');
+                [refImName, ~] = uigetfile(obj.folder, 'Select the reference image');
                 if refImName == 0
                     error('No reference image selected');
                 end
-                obj.refImage = imread(fullfile(refImPath, refImName));
+                obj.refImage = imread(fullfile(obj.folder, refImName));
             end
 
             % set the record image if not set
             if isempty(obj.recImage)
-                % get the disk name
-                funcPath = mfilename('fullpath');
-                funcDisk = funcPath(1:3);
-                recImPath = [funcDisk, 'users\Fei\DataAnalysis\Utilities\CoorTransform\*.*'];
-                [recImName, recImPath] = uigetfile(recImPath, 'Select the record image');
+                [recImName, ~] = uigetfile(obj.folder, 'Select the record image');
                 if recImName == 0
                     error('No record image selected');
                 end
-                obj.recImage = imadjust(imread(fullfile(recImPath, recImName)));
+                obj.recImage = imadjust(imread(fullfile(obj.folder, recImName)));
+                obj.mouse = findMouse(recImName);
+                obj.session = findSession(recImName);
             end
 
             % transform the coordinates
             obj = obj.TransformCoor();
             % convert the unit
             obj = obj.ConvertUnit();
+            % save the Transformer
+            obj.Save();
+
         end
 
         function obj = TransformCoor(obj)
             % perform the transformation
             [obj.controlPointsRec, obj.controlPointsRef] = cpselect(obj.recImage, obj.refImage, obj.controlPointsRecInitial, obj.controlPointsRefInitial, 'Wait', true);
             obj.controlPointsRefInitial = obj.controlPointsRef;
+            obj.controlPointsRecInitial = obj.controlPointsRec;
             try % for matlab 2022b and later
                 obj.transformer = fitgeotform2d(obj.controlPointsRec,obj.controlPointsRef,"similarity");
             catch % for matlab 2022b and earlier
@@ -96,8 +120,9 @@ classdef CoorTransform < handle
             end
             obj.recImageRecovered = imwarp(obj.recImage, obj.transformer, 'OutputView', imref2d(size(obj.refImage)));
             figure('Name', 'Check the recovered image');
-            montage({obj.refImage, obj.recImageRecovered});
-        end   
+            imshowpair(obj.refImage, obj.recImageRecovered, 'falsecolor');
+
+        end
 
         function obj = ConvertUnit(obj)
             obj.objSelectRefPoints.figH = uifigure('Name', 'Select reference points');
@@ -149,18 +174,25 @@ classdef CoorTransform < handle
             obj.objSelectRefPoints.tbHbregma.Layout.Column = 2;
 
             % get the reference point coordinate 1 in pixel
-            obj.objSelectRefPoints.refPoint1 = drawpoint(obj.objSelectRefPoints.imAxes,'Color', 'r', 'Label', 'Ref1');
-            obj.objSelectRefPoints.tbHref.Data{'Ref1', 'X(pixel)'} = obj.objSelectRefPoints.refPoint1.Position(1);
-            obj.objSelectRefPoints.tbHref.Data{'Ref1', 'Y(pixel)'} = obj.objSelectRefPoints.refPoint1.Position(2);
+            if isempty(obj.refPointsCoorPixel)
 
-            % get the reference point coordinate 2 in pixel
-            obj.objSelectRefPoints.refPoint2 = drawpoint(obj.objSelectRefPoints.imAxes,'Color', 'r', 'Label', 'Ref2');
-            obj.objSelectRefPoints.tbHref.Data{'Ref2', 'X(pixel)'} = obj.objSelectRefPoints.refPoint2.Position(1);
-            obj.objSelectRefPoints.tbHref.Data{'Ref2', 'Y(pixel)'} = obj.objSelectRefPoints.refPoint2.Position(2);
+                obj.objSelectRefPoints.refPoint1 = drawpoint(obj.objSelectRefPoints.imAxes,'Color', 'r', 'Label', 'Ref1');
+                obj.objSelectRefPoints.tbHref.Data{'Ref1', 'X(pixel)'} = obj.objSelectRefPoints.refPoint1.Position(1);
+                obj.objSelectRefPoints.tbHref.Data{'Ref1', 'Y(pixel)'} = obj.objSelectRefPoints.refPoint1.Position(2);
 
-            % set obj.refPointsCoorPixel
-            obj.refPointsCoorPixel{1} = obj.objSelectRefPoints.refPoint1.Position;
-            obj.refPointsCoorPixel{2} = obj.objSelectRefPoints.refPoint2.Position;
+                % get the reference point coordinate 2 in pixel
+                obj.objSelectRefPoints.refPoint2 = drawpoint(obj.objSelectRefPoints.imAxes,'Color', 'r', 'Label', 'Ref2');
+                obj.objSelectRefPoints.tbHref.Data{'Ref2', 'X(pixel)'} = obj.objSelectRefPoints.refPoint2.Position(1);
+                obj.objSelectRefPoints.tbHref.Data{'Ref2', 'Y(pixel)'} = obj.objSelectRefPoints.refPoint2.Position(2);
+
+                % set obj.refPointsCoorPixel
+                obj.refPointsCoorPixel{1} = obj.objSelectRefPoints.refPoint1.Position;
+                obj.refPointsCoorPixel{2} = obj.objSelectRefPoints.refPoint2.Position;
+            else
+                % draw the reference points
+                obj.objSelectRefPoints.refPoint1 = drawpoint(obj.objSelectRefPoints.imAxes, 'Position', obj.refPointsCoorPixel{1}, 'Color', 'r', 'Label', 'Ref1');
+                obj.objSelectRefPoints.refPoint2 = drawpoint(obj.objSelectRefPoints.imAxes, 'Position', obj.refPointsCoorPixel{2}, 'Color', 'r', 'Label', 'Ref2');
+            end
 
             % get the coordinates of the bregma point in pixel
             obj.bregmaCoorPixel = obj.ConvertMm2pixel(obj.bregmaCoorReal);
@@ -238,21 +270,32 @@ classdef CoorTransform < handle
 
         end
 
-        function Save(obj, savePath)
+        %% Save the object
+        function Save(obj)
+            % save the mouse specific object
+            savePathMouse = fullfile(obj.folder, [obj.mouse, '.mat']);
+            savePathMouseSession = fullfile(obj.folder, [obj.mouse, '_', obj.session, '.mat']);
 
-            if nargin == 1
-                funcPath = mfilename('fullpath');
-                funcDisk = funcPath(1:3);
-                % get the disk name
-                savePath = [funcDisk, 'users\Fei\DataAnalysis\Utilities\CoorTransform\CoorTransform.mat'];
+            if ~isfile(savePathMouseSession)
+                save(savePathMouseSession, 'obj');
             end
-            
-            % save the object
-            obj.objSelectRefPoints = [];
-            obj.objTransformCoorCpselect = [];
-            save(savePath, 'obj');
+
+            if ~isfile(savePathMouse)
+                obj.Reset();
+                save(savePathMouse, 'obj');
+            end
+
+            % ask to close the figure
+            closeFlag = questdlg('Do you want to close the figure?', 'Close figure', 'Yes', 'No', 'Yes');
+            if strcmp(closeFlag, 'Yes')
+                close all;
+                close(obj.objSelectRefPoints.figH);
+            end
+
+
         end
 
+        %% Reset the object
         function obj = Reset(obj)
             % reset the object
             obj.recImage = [];
@@ -260,15 +303,22 @@ classdef CoorTransform < handle
             obj.controlPointsRec = [];
             obj.transformer = [];
         end
-        
-    end
 
-    methods(Static)
-        function obj = Load(loadPath)
-            % load the object
-             loadResult = load(loadPath);
-             obj = loadResult.obj;
+        %% Load the object
+        function obj = Load(obj, fileFilter)
+            objPath = findFile(obj.folder, fileFilter);
+            if height(objPath) == 1
+                % load the object
+                loadResult = load(objPath.path);
+                obj = loadResult.obj;
+                try % close the figure for reference points selection if it exists
+                   close(obj.objSelectRefPoints.figH);
+                end
+            else
+                error('The object does not exist or multiple objects are found');
+            end
         end
     end
-    
+
+
 end

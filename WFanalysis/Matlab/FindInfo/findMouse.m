@@ -13,12 +13,17 @@ function argout = findMouse(argin)
     %% Main Function
 
     % find mouse name
-    findMouseFun = @(X)regexp(X, '[a-zA-Z]\d{4}(?=_)', 'match', 'once');
+    findMouseFun = @(X)regexp(X, '[a-zA-Z]\d{3}\w{1}(?=_)', 'match', 'once');
     argout = findMouseFun(argin);
 
     % if no match raise error
     if isempty(argout)
         error('findMouse:argout', 'No mouse name found in input string');
+    end
+
+    % if output is a 1 cell array, convert to string
+    if iscell(argout) && numel(argout) == 1
+        argout = argout{1};
     end
 
 end

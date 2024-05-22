@@ -18,7 +18,7 @@ function argout = findStimulusType(argin)
 
     % if no match raise error
     if isempty(argout)
-        error('findMouse:argout', 'No mouse name found in input string');
+        error('findStimulusType:argout', 'No mouse name found in input string');
     end
 
 end

@@ -41,4 +41,9 @@ function argout = findSession(argin, sFormat)
         case 'YYYYMMDD'
             argout = cellstr(datestr(argoutDate, 'yyyymmdd'));
     end
+
+    % if output is a 1 cell array, convert to string
+    if iscell(argout) && numel(argout) == 1
+        argout = argout{1};
+    end
 end

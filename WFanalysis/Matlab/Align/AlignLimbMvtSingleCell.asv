@@ -70,10 +70,6 @@ classdef AlignLimbMvtSingleCell < handle
                     
                     % load the times for the imaging data of current trial
                     tifTimesAbs = loadTifTime(thisTrial.path{1});
-                    % Bpod times start from state "trigerCAMLED"
-                    % Tif frame times start from the state "startTrial"
-                    % Need to align the times of the imaging data with the Bpod data at the state "trigerCAMLED"
-                    tifTimesAbs = tifTimesAbs - tifTimesAbs(1);
                     
                     [~, stimOnFrameIdx] = min(abs(tifTimesAbs - thisTrial.t1stMvt));
                     tifTimesRel = tifTimesAbs - tifTimesAbs(stimOnFrameIdx);

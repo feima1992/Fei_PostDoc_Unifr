@@ -1,13 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 mouse = 'm237[12456]'; % mouse selection
-wfDataDrive = 'D'; % hard drive storing widefied imaging tiffs
 topFolder = 'WFW_M237X'; % folder in bigdata sever
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Param
 objParamLimbMvt = Param_LimbMvt_CranialWin('folderName',topFolder);
 % Wf tif files
-objFileTableTifWf = FileTable_Tif_Wf('D:\Data\WFrecordings\',mouse);
+objFileTableTifWf = FileTable_Tif_Wf('E:\Data\WFrecordings\',mouse);
 
 % Bpod files
 objFileTableBpodLimbMvt = FileTable_Bpod_LimbMvt('Z:\users\Fei\Bpod\',mouse);

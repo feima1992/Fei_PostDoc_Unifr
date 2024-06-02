@@ -13,7 +13,7 @@ classdef FileTable_Act_Reg_IMcorr < FileTable_Act_Reg
             fprintf('   Loading IMcorr from %d files\n', height(obj.fileTable))
             tic;
             % Load deltaFoverF
-            obj.fileTable = loadDataIMcorr(obj.fileTable, 'loadIMcorrType', 'IMcorrREG');
+            obj.fileTable = loadDataIMcorr(obj.fileTable, 'loadIMcorrType', 'IMcorrREG', 'imMaskSource', 'internal');
             % Notify the user that loading is done and how long it took
             fprintf('   Loading IMcorr from %d files took %.2f seconds\n', height(obj.fileTable), toc)
         end
@@ -26,7 +26,7 @@ classdef FileTable_Act_Reg_IMcorr < FileTable_Act_Reg
             end
             
             if ~ismember('IMcorr', obj.fileTable.Properties.VariableNames)
-                obj.LoadDataIMcorr();
+                obj.LoadIMcorr();
             end
             for i = 1:height(obj.fileTable)
                 obj.fileTable.IMcorr{i} = Frames_IMcorr(obj.fileTable.IMcorr{i}).CalActMap(threValue).frameData;
@@ -35,7 +35,7 @@ classdef FileTable_Act_Reg_IMcorr < FileTable_Act_Reg
         %% Group average Act map
         function obj = CalAvgIMcorr(obj, groupby)
             if ~ismember('IMcorr', obj.fileTable.Properties.VariableNames)
-                obj.LoadDataIMcorr();
+                obj.CalActMap();
             end
 
             [gIdx,gName] = findgroups(obj.fileTable(:,groupby));

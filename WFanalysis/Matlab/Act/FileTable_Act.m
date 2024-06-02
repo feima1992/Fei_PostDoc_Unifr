@@ -6,7 +6,8 @@ classdef FileTable_Act < FileTable
             if nargin < 1
                 topDisk = mfilename('fullpath');
                 userDir = regexp(topDisk, '.*Fei', 'match', 'once');
-                topDir = fullfile(userDir, 'DataAnalysis');
+                %topDir = fullfile(userDir, 'DataAnalysis');
+                topDir = 'D:/WF';
             end
             % Call superclass constructor
             obj = obj@FileTable(topDir, varargin{:});

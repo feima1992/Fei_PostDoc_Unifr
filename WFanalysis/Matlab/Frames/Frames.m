@@ -291,7 +291,9 @@ classdef Frames < handle
             % plot each frame
             for i = 1:length(frameId)
                 subplot(nRows, nCols, i);
-                imshowFrame(obj.frameData(:, :, frameId(i)), 'title', sprintf('%.1f s', obj.frameTime(frameId(i))));
+                data = obj.frameData(:, :, frameId(i));
+                data(data == 0) = nan;
+                imshowFrame(data, 'title', sprintf('%.1f s', obj.frameTime(frameId(i))));
             end
 
         end

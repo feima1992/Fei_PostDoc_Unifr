@@ -350,7 +350,7 @@ classdef regActRawCranialWindow < handle
                 save(regFile, 'XYrefCTX', 'XYref','imMaskPos');
             end
             
-            %% register all frames of act
+            %% register all frames of tact
             S = load(strrep(obj.imACT,'tif','mat'));
             
             param = S.P;

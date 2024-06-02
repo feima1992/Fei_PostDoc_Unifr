@@ -14,14 +14,14 @@ classdef Enrich_LimbVib < Enrich
         %% Load IMcorr data
         function obj = LoadIMcorr(obj)
             
-            if exist(fullfile(obj.resultPath, 'Enrich_LimbMvt_ActIMcorr.mat'), "file")
+            if exist(fullfile(obj.resultPath, 'Enrich_LimbVib_ActIMcorr.mat'), "file")
                 fprintf('Loading IMcorr data from existing file...\n');
                 load(fullfile(obj.resultPath, 'Enrich_LimbVib_ActIMcorr.mat'), 'objFileTableActReg');
                 obj.objRegIMcorr = objFileTableActReg;
                 fprintf('IMcorr data loaded.\n');
             else
                 fprintf('Loading IMcorr data from raw file...\n');
-                obj.objRegIMcorr = FileTable_Act_Reg_IMcorr(obj.dataPath, obj.dataFilter).AddGroupInfo(obj.expInfo);
+                obj.objRegIMcorr = FileTable_Act_Reg_IMcorr(obj.dataPath, obj.dataFilter).AddGroupInfo(obj.expInfo).LoadIMcorr();
                 objFileTableActReg = obj.objRegIMcorr;
                 save(fullfile(obj.resultPath, 'Enrich_LimbVib_ActIMcorr.mat'), 'objFileTableActReg', '-v7.3');
                 fprintf('IMcorr data loaded.\n');

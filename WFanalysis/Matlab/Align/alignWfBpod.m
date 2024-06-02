@@ -147,7 +147,7 @@ function filesWfBpod = alignWfBpod(filesWfBpod, P)
         imREF = imread(fullfile(P.dir.refImage, [mouse, '_', session, '_REF.tif']));
         imREF = imREF(end:-1:1, end:-1:1);
         f0 = figure();
-        imshow(imREF);
+        imshow(imadjust(imREF));
         hF = drawpolygon();
         imMask = createMask(hF);
         close(f0);

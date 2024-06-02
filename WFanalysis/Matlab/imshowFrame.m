@@ -6,7 +6,7 @@ function im = imshowFrame(frameData, options)
         options.ax = gca
         options.cmap = fire(256)
         options.title {mustBeTextScalar} = ''
-        options.abmTemplate (1,1) {mustBeNumericOrLogical} = true
+        options.abmTemplate (1,1) {mustBeNumericOrLogical} = false
     end
 
     % plot the frame

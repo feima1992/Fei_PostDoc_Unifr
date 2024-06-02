@@ -41,11 +41,14 @@ classdef FileTable_Act_Raw < FileTable_Act
                         objReg = regActRawClearSkull(obj.fileTable.pathRef{i}, strrep(obj.fileTable.path{i}, '.mat', '.tif'), Param());
                     case 'cranialWindow'
                         objReg = regActRawCranialWindow(obj.fileTable.pathRef{i}, strrep(obj.fileTable.path{i}, '.mat', '.tif'), Param());
+                    case 'cranialWindowVesselPattern'
+                        regActRawCranialWindowVesselPattern(obj.fileTable.pathRef{i}, strrep(obj.fileTable.path{i}, '.mat', '.tif'), Param());
                 end
-
-                set(findobj('Name', 'WF registration'), 'Position', guiPosition);
-                waitfor(objReg, 'objButtonRegFlag', 1);
-                pause(10)
+                try
+                    set(findobj('Name', 'WF registration'), 'Position', guiPosition);
+                    waitfor(objReg, 'objButtonRegFlag', 1);
+                    pause(10)
+                end
             end
 
         end

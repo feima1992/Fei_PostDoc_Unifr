@@ -563,7 +563,7 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
             data.gaussianPD(data.gaussianPD > 360) = data.gaussianPD(data.gaussianPD > 360) - 360;
             eightDirPD = 0:45:360;
             [~, idx] = min(abs(data.gaussianPD - eightDirPD), [], 2);
-            data.eightDirPD = eightDirPD(idx)';
+            data.eightDirPD = eightDirPD(idx);
             data.eightDirPD(data.eightDirPD == 360) = 0;
             data.eightDirPD(isnan(data.gaussianPD)) = NaN;
 
@@ -574,10 +574,10 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
             % compute the color of the cells
             colorMap = zeros(height(data), 3) + 0.8; % default color is gray
             colorMap(data.sigResp, :) = 0; % sigResp cells are black
-            eightDirPDsigTuning = data.eightDirPD(~isnan(data.eightDirPD)) ./ 360;
+            eightDirPDsigTuning = data.eightDirPD(data.sigTuning|~data.badFit) ./ 360;
             eightDirPDsigTuning(:, 2) = 1;
             eightDirPDsigTuning(:, 3) = 1;
-            colorMap(~isnan(data.eightDirPD), :) = hsv2rgb(eightDirPDsigTuning); % sigTuning cells are colored by eightDirPD
+            colorMap(obj.fileTableExp.sigTuning, :) = hsv2rgb(eightDirPDsigTuning); % sigTuning cells are colored by eightDirPD
             mvtDir = [0, 45, 90, 135, 180, 225, 270, 315];
             mvtDirColor = zeros(length(mvtDir), 3);
             mvtDirColor(:, 1) = mvtDir ./ 360;
@@ -585,11 +585,11 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
             mvtDirColor(:, 3) = 1;
             mvtDirColor = hsv2rgb(mvtDirColor);
             % compute the alpha of the cells
-            alphaMap = zeros(height(data), 1) + 1; % default alpha is 0.5
-            alphaMap(data.sigResp, :) = 1; % sigResp cells are 1
+            alphaMap = zeros(height(obj.fileTableExp), 1) + 1; % default alpha is 0.5
+            alphaMap(obj.fileTableExp.sigResp, :) = 1; % sigResp cells are 1
             % compute the size of the cells
-            sizeMap = zeros(height(data), 1) + 15; % default size is 15
-            sizeMap(data.sigResp, :) = 30; % sigResp cells are 30
+            sizeMap = zeros(height(obj.fileTableExp), 1) + 15; % default size is 15
+            sizeMap(obj.fileTableExp.sigResp, :) = 30; % sigResp cells are 30
 
             % plot the cells
             figure;
@@ -643,9 +643,9 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
             ylabel('Anterior-Posterior (mm)');
 
             % select point in the plot to display the cell index
-            set(s, 'ButtonDownFcn', @(src, event) ClickCallback(src, event, obj, data));
+            set(s, 'ButtonDownFcn', @(src, event) ClickCallback(src, event, obj));
 
-            function ClickCallback(h, e, obj, data)
+            function ClickCallback(h, e, obj)
 
                 % --- Get coordinates
                 x = get(h, 'XData');
@@ -655,20 +655,19 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
                 [~, i] = min((e.IntersectionPoint(1) - x) .^ 2 + (e.IntersectionPoint(2) - y) .^ 2);
 
                 % get mouse and session
-                mouse = data.mouse{i};
-                session = data.session{i};
-                cellIdx = data.cellIdx(i);
+                mouse = obj.fileTableExp.mouse{i};
+                session = obj.fileTableExp.session{i};
+                cellIdx = obj.fileTableExp.cellIdx(i);
 
-                sigRespPval = data.sigRespPval(i);
-                maxRespAmp = data.maxRespAmp(i);
-                sigTunePval = data.sigTunePval(i);
-                badFit = data.badFit(i);
-                gaussianPD = data.gaussianPD(i);
+                sigRespPval = obj.fileTableExp.sigRespPval(i);
+                maxRespAmp = obj.fileTableExp.maxRespAmp(i);
+                sigTunePval = obj.fileTableExp.sigTunePval(i);
+                gaussianPD = obj.fileTableExp.gaussianPD(i);
 
                 % print the cell index
                 fprintf('Mouse: %s, Session: %s, Cell Index: %d\n', mouse, session, cellIdx);
                 str2disp1 = sprintf('Mouse: %s, Session: %s, Cell Index: %d', mouse, session, cellIdx);
-                str2disp2 = sprintf('P: %.3f,  Amp: %.1f,  Ptune: %.3f, BadFit: %d,  PD: %.0f', sigRespPval, maxRespAmp, sigTunePval, badFit, gaussianPD);
+                str2disp2 = sprintf('P: %.3f,  Amp: %.1f,  Ptune: %.3f,  PD: %.0f', sigRespPval, maxRespAmp, sigTunePval, gaussianPD);
 
                 % find the corresponding trigData in obj.fileTable
                 idx = strcmp(obj.fileTable.mouse, mouse) & strcmp(obj.fileTable.session, session);
@@ -677,32 +676,18 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
                 % buildGUI if obj.guiH does not exist
                 if ~isvalid(obj.guiH.figH)
                     obj.buildGUI();
-                else
-                    % change button color to default
-                    set(obj.guiH.buttonYesH, 'BackgroundColor', [0.94, 0.94, 0.94]);
-                    set(obj.guiH.buttonNoH, 'BackgroundColor', [0.94, 0.94, 0.94]);
-                    set(obj.guiH.buttonGoodH, 'BackgroundColor', [0.94, 0.94, 0.94]);
                 end
 
                 set(obj.guiH.label1H, 'Text', str2disp1);
                 set(obj.guiH.label2H, 'Text', str2disp2);
                 delete(obj.guiH.tunePanel.Children)
                 delete(obj.guiH.gaussPanel.Children)
-                fig1 = plotDirTune(trigData, cellIdx);
-                copyobj(fig1.Children, obj.guiH.tunePanel);
-                close(fig1);
-                [~,fig2] = fitGaussOut(trigData, cellIdx, 1);
-                copyobj(fig2.Children, obj.guiH.gaussPanel);
-                close(fig2);
-
-                % change button color according to the goodResp value
-                if data.goodResp(i) == 2
-                    set(obj.guiH.buttonGoodH, 'BackgroundColor', 'green');
-                elseif data.sigResp(i) == 1
-                    set(obj.guiH.buttonYesH, 'BackgroundColor', 'blue');
-                elseif data.sigResp(i) == 0
-                    set(obj.guiH.buttonNoH, 'BackgroundColor', 'red');
-                end
+                plotDirTune(trigData, cellIdx);
+                copyobj(gcf().Children, obj.guiH.tunePanel);
+                close(gcf());
+                fitGaussOut(trigData, cellIdx, 1);
+                copyobj(gcf().Children, obj.guiH.gaussPanel);
+                close(gcf());
 
             end
 

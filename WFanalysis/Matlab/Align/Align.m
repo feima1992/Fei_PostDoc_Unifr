@@ -85,10 +85,16 @@ classdef Align < handle
                         objReg = regActRawClearSkull(wfBpodTableForReg.pathRef{i}, wfBpodTableForReg.pathActRawTif{i}, Param());
                     case 'cranialWindow'
                         objReg = regActRawCranialWindow(wfBpodTableForReg.pathRef{i}, wfBpodTableForReg.pathActRawTif{i}, Param());
+                    case 'cranialWindowVesselPattern'
+                        regActRawCranialWindowVesselPattern(wfBpodTableForReg.pathRef{i}, wfBpodTableForReg.pathActRawTif{i}, Param());
                 end
 
-                set(findobj('Name', 'WF registration'), 'Position', guiPosition);
-                waitfor(objReg, 'objButtonRegFlag', 1);
+                try
+                    set(findobj('Name', 'WF registration'), 'Position', guiPosition);
+                    waitfor(objReg, 'objButtonRegFlag', 1);
+                catch
+                    continue
+                end
             end
 
             % close all and notify user

@@ -1,6 +1,6 @@
 classdef Enrich < handle
     properties
-        dataPath = Param().folderParent;
+        dataPath = 'D:\WF';
         resultPath = fullfile(Param().folderFigure, 'EnrichedCage')
         objRegIMcorr;
         objRegIMcorrCopy;      
@@ -68,7 +68,7 @@ classdef Enrich < handle
             
             % get edge of active map (avg across mice)
             obj.objRegIMcorrCopy = copy(obj.objRegIMcorr);
-            
+            obj.objRegIMcorrCopy.fileTable(ismember(obj.objRegIMcorrCopy.fileTable.mouse,'m2371'),:) = [];
             avgVar = {'group'};
             obj.objRegIMcorrCopy.CalAvgIMcorr(avgVar);
             obj.objRegIMcorrCopy.CalActMap(obj.actMapThre);
@@ -84,7 +84,7 @@ classdef Enrich < handle
             
             % get centroid of active map
             obj.objRegIMcorrCopy = copy(obj.objRegIMcorr);
-            
+            obj.objRegIMcorrCopy.fileTable(ismember(obj.objRegIMcorrCopy.fileTable.mouse,'m2371'),:) = [];
             avgVar = {'group', 'mouse'};
             obj.objRegIMcorrCopy.CalAvgIMcorr(avgVar);
             obj.objRegIMcorrCopy.CalActMap(obj.actMapThre);

@@ -21,7 +21,7 @@ classdef Enrich_LimbMvt < Enrich
                 fprintf('IMcorr data loaded.\n');
             else
                 fprintf('Loading IMcorr data from raw file...\n');
-                obj.objRegIMcorr = FileTable_Act_Reg_IMcorr(obj.dataPath, obj.dataFilter).AddGroupInfo(obj.expInfo);
+                obj.objRegIMcorr = FileTable_Act_Reg_IMcorr(obj.dataPath, obj.dataFilter).AddGroupInfo(obj.expInfo).LoadIMcorr();
                 objFileTableActReg = obj.objRegIMcorr;
                 save(fullfile(obj.resultPath, 'Enrich_LimbMvt_ActIMcorr.mat'), 'objFileTableActReg', '-v7.3');
                 fprintf('IMcorr data loaded.\n');

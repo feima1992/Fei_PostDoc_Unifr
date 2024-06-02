@@ -58,6 +58,11 @@ LoadActProps <- function(filePath) {
             mutate(phase = factor(phase, levels = new_phase_names[3:4]))
         data <- bind_rows(data_trained, data_untrained)
     }
+    
+    if ("group" %in% colnames(data)) {
+        data <- data %>%
+            mutate(group = factor(group))
+    }
 
     return(data)
 }

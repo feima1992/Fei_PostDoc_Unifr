@@ -4,7 +4,7 @@ classdef FileTable_Bpod_RunWheel < FileTable_Bpod
     end
     methods
         function obj = FileTable_Bpod_RunWheel()
-            obj = obj@FileTable_Bpod('F:\users\Fei\Bpod\', 'm237X');
+            obj = obj@FileTable_Bpod('Z:\users\Fei\Bpod\', 'm237X');
             obj.LoadFile().Plot();
         end
         
@@ -17,13 +17,13 @@ classdef FileTable_Bpod_RunWheel < FileTable_Bpod
             wheelRunSatrtEndTimes = cell2mat(obj.fileTable.wheelRunStartEndTimes);
             wheelRunDuration = wheelRunSatrtEndTimes(:, 2) - wheelRunSatrtEndTimes(:, 1);
             wheelRunDuration = rmoutliers(wheelRunDuration);
-            figure
+            figure('Color', 'w', 'Name', 'Wheel run duration')
             histogram(wheelRunDuration, 'Normalization', 'probability');
             axis tight;
             xlabel('Time(s)');
             ylabel('Probability');
-            title('Probalility distribution of wheel run duration for one trun');
-            lowThreshold = 0.2;
+            title('Time duration of single wheel turn');
+            lowThreshold = 0.25;
             highThreshold = 1;
             rectangle('Position', [lowThreshold, 0, highThreshold - lowThreshold, gca().YLim(2)], 'EdgeColor', 'r', 'LineStyle', '--', 'LineWidth', 1);
             % filter out wheel run duration that are too short or too long
@@ -63,6 +63,7 @@ classdef FileTable_Bpod_RunWheel < FileTable_Bpod
             gTable(cell2mat(gTable.wheelRunDist) == 0, :) = [];
             % remove the first 5 sessions where the hardware was not working properly yet
             gTable(1:4, :) = [];
+            gTable(end, :) = [];
             nDays = height(gTable) + 4*2; % 4 weeks of weekends
             nMouse = 5;
             avgRopePullNum = sum(cell2mat(gTable.ropePullNum)) / nDays / nMouse;

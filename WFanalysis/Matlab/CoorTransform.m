@@ -15,7 +15,7 @@ classdef CoorTransform < handle
         refPointsCoorReal = {[1,0], [2,0]}; % default ref points in mm
         bregmaCoorReal = [0, 0]; % default bregma point in mm
         bregmaCoorPixel % bregma point in pixel
-        winCenterCoorReal = [-2.5, -0.5]; % default window center in mm
+        winCenterCoorReal = [-2.25, -0.5]; % default window center in mm
         winCenterCoorPixel % window center in pixel
 
         controlPointsRef % control points in the reference image
@@ -121,10 +121,12 @@ classdef CoorTransform < handle
             obj.recImageRecovered = imwarp(obj.recImage, obj.transformer, 'OutputView', imref2d(size(obj.refImage)));
             figure('Name', 'Check the recovered image');
             imshowpair(obj.refImage, obj.recImageRecovered, 'falsecolor');
+            
 
         end
 
-        function obj = ConvertUnit(obj)
+        function obj = ConvertUnit(obj, redo)
+            
             obj.objSelectRefPoints.figH = uifigure('Name', 'Select reference points');
             obj.objSelectRefPoints.gl  = uigridlayout(obj.objSelectRefPoints.figH, [3, 2]);
             obj.objSelectRefPoints.gl.ColumnWidth = {'1x', '1x'};
@@ -174,6 +176,10 @@ classdef CoorTransform < handle
             obj.objSelectRefPoints.tbHbregma.Layout.Column = 2;
 
             % get the reference point coordinate 1 in pixel
+            if redo
+                obj.refPointsCoorPixel = [];
+            end
+            
             if isempty(obj.refPointsCoorPixel)
 
                 obj.objSelectRefPoints.refPoint1 = drawpoint(obj.objSelectRefPoints.imAxes,'Color', 'r', 'Label', 'Ref1');
@@ -208,6 +214,8 @@ classdef CoorTransform < handle
             % draw the window center
             obj.objSelectRefPoints.winCenterPoint = drawpoint(obj.objSelectRefPoints.imAxes, 'Position', obj.winCenterCoorPixel, 'Color', 'y', 'Label', 'Window center');
 
+            % save the object
+            obj.Save();
         end
 
         function coorMm = ConvertPixel2mm(obj, xyPixel)
@@ -271,25 +279,24 @@ classdef CoorTransform < handle
         end
 
         %% Save the object
-        function Save(obj)
+        function Save(obj, overwriteFlag)
+            % check the overwrite flag
+            if nargin == 1
+                overwriteFlag = false;
+            end
             % save the mouse specific object
             savePathMouse = fullfile(obj.folder, [obj.mouse, '.mat']);
             savePathMouseSession = fullfile(obj.folder, [obj.mouse, '_', obj.session, '.mat']);
 
-            if ~isfile(savePathMouseSession)
+            if ~isfile(savePathMouseSession) || overwriteFlag
                 save(savePathMouseSession, 'obj');
+                fprintf('The object is saved to %s\n', savePathMouseSession);
             end
 
-            if ~isfile(savePathMouse)
+            if ~isfile(savePathMouse) || overwriteFlag
                 obj.Reset();
                 save(savePathMouse, 'obj');
-            end
-
-            % ask to close the figure
-            closeFlag = questdlg('Do you want to close the figure?', 'Close figure', 'Yes', 'No', 'Yes');
-            if strcmp(closeFlag, 'Yes')
-                close all;
-                close(obj.objSelectRefPoints.figH);
+                fprintf('The object is saved to %s\n', savePathMouse);
             end
 
 

@@ -1,4 +1,4 @@
-function fitStats = fitGaussOut(trigData, cNum, plotFlag)
+function [fitStats, figH] = fitGaussOut(trigData, cNum, plotFlag)
 
     if nargin < 3
         plotFlag = 0;
@@ -21,9 +21,11 @@ function fitStats = fitGaussOut(trigData, cNum, plotFlag)
     [~,idxOUT] = max(y);
     y=circshift(y,5-idxOUT);
     y=[y;y(1)];
+
     % if min(y)<0
     %     y=y-min(y);
     % end
+
     [xData, yData] = prepareCurveData( x, y );
     % Fit model to data.
     try
@@ -32,12 +34,12 @@ function fitStats = fitGaussOut(trigData, cNum, plotFlag)
         badFitOUT = any(CIs(1,[1 3])<0 & CIs(2,[1 3])>0);
         fitresultOUT.b1 = fitresultOUT.b1+dirAng(idxOUT);
         if plotFlag
+
             % Plot fit with data.
-            figure( 'Name', 'Direction tune fits', 'Color', 'w' );
+            figH = figure( 'Name', 'Direction tune fits', 'Color', 'w', 'Visible', 'off');
             subplot(121)
             plot( fitresultOUT, xData+dirAng(idxOUT), yData, 'bs-' );
             set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [0.03 0.03])
-            title('OUT')
             subplot(122)
             plot(dirAng, trigData.Stats{cNum,1}(:,1), 'bs-' );
             set(gca, 'Box', 'off', 'TickDir', 'out', 'TickLength', [0.03 0.03])
@@ -53,13 +55,11 @@ function fitStats = fitGaussOut(trigData, cNum, plotFlag)
     PDround = dirAng(prefDirId);
     
     w = trigData.Stats{cNum,1}(:,1);
-    w = w - min(w);
     
-    circMean = rad2deg(circ_mean(deg2rad(dirAng)',w));
-    circVar = circ_var(deg2rad(dirAng)',w);
+    w(w<0) = 0; % incase there are negative values
     circTest = circ_rtest(deg2rad(dirAng)',w);
 
-    fitStats = [fitresultOUT.b1, fitresultOUT.c1, gofOUT.rsquare, badFitOUT, PDround, circMean, circVar, circTest];
+    fitStats = [fitresultOUT.b1, fitresultOUT.c1, gofOUT.rsquare, badFitOUT, PDround, circTest];
 end
 
 

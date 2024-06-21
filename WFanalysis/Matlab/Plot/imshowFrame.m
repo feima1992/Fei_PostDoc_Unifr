@@ -16,8 +16,8 @@ function im = imshowFrame(frameData, options)
     if options.plot
         imshow(im,[]);
         
-        axis(options.ax, 'image');
-        axis(options.ax, 'off');
+        axis image;
+        axis off;
 
         if ~isempty(options.title)
             title(options.ax, options.title);

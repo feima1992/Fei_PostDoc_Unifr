@@ -146,10 +146,10 @@ classdef regActRawCranialWindow < handle
             % try auto load REGcoords
             try
                 autoLoadREGcoords(obj);
-                register(obj);
+                %register(obj);
                 % pause 5 second to let user see the result
                 pause(5);
-                obj.objButtonRegFlag = 1;
+                % obj.objButtonRegFlag = 1;
             catch
             end
             

@@ -9,12 +9,13 @@ library(ggeasy)
 library(patchwork)
 library(gridExtra)
 library(scales)
+library(ggpmisc)
 
 # %% LoadActProps
 LoadActProps <- function(filePath) {
     # load data from csv file
     data <- read.csv(filePath, header = TRUE, sep = ",") %>%
-        mutate(Intensity = Area * MeanIntensity) %>%
+        mutate(Intensity = MeanIntensity) %>%
         mutate(Area = Area * 0.018 * 0.018) %>%
         mutate(AreaSensory = AreaSensory * 0.018 * 0.018) %>%
         mutate(AreaMotor = AreaMotor * 0.018 * 0.018) %>%
@@ -223,7 +224,7 @@ FigureActPropsRgDevelop <- function(filePath, fileName = "fig") {
 
 # %% Figure of act props for reaching and grasping training data
 FigureActPropsRg <- function(filePath, fileName = "fig") {
-    data <- LoadActProps(filePath2)
+    data <- LoadActProps(filePath)
 
     figArea <- PlotActPropsRg(df = data, y = "Area", ylabel = "Area size of proprioceptive activation (mm2)")
     figIntensity <- PlotActPropsRg(df = data, y = "Intensity", ylabel = "Intensity of proprioceptive activation")

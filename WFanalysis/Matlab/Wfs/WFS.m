@@ -450,7 +450,9 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
                 set(obj.guiH.buttonGoodH, 'BackgroundColor', [0.94, 0.94, 0.94]);
                 % delete the plots
                 delete(obj.guiH.tunePanel.Children)
-                delete(obj.guiH.gaussPanel.Children)
+                if obj.guiH.gaussPanel.Title == "Gaussian Fit"
+                    delete(obj.guiH.gaussPanel.Children)
+                end
                 % set the flag to 1 to continue to the next cell
                 obj.flagNext = 1;
                 % update the checkedIdx
@@ -546,17 +548,31 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
         end
 
         %% function to check spatial footprints
-        function obj = CheckSpatialFootprints(obj, respScoreThresh)
-
-            if nargin < 2
-                respScoreThresh = 1;
+        function obj = CheckSpatialFootprints(obj, options)
+            arguments
+                obj;
+                options.respScoreThresh (1, 1) double = 2;
+                options.mouseFilter = 'All';
+                options.plotNoResp (1, 1) logical = false;
             end
 
             % sort the fileTableExp by sigResp and sigTuning so that sigResp cells, sigTuning cells are plotted on top
             data = sortrows(obj.fileTableExp, {'goodResp', 'sigTuning'}, 'ascend');
 
             % filter cells with goodResp greater than respScoreThresh
-            data = data(data.goodResp >= respScoreThresh, :);
+            data.sigResp(data.goodResp < options.respScoreThresh) = 0;
+            data.sigTuning(data.goodResp < options.respScoreThresh) = 0;
+            data.gaussianPD(data.goodResp < options.respScoreThresh) = NaN;
+            data.eightDirPD(data.goodResp < options.respScoreThresh) = NaN;
+
+            if ~options.plotNoResp
+                data = data(data.goodResp >= respScoreThresh, :);
+            end
+
+
+            if ~strcmp(options.mouseFilter, 'All')
+                data = data(ismember(data.mouse, options.mouseFilter), :);
+            end
 
             % correct gaussianPD and eightDirPD
             data.gaussianPD(data.gaussianPD < 0) = data.gaussianPD(data.gaussianPD < 0) + 360;
@@ -591,16 +607,30 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
             sizeMap = zeros(height(data), 1) + 15; % default size is 15
             sizeMap(data.sigResp, :) = 30; % sigResp cells are 30
 
-            % plot the cells
-            figure;
-            s = scatter(x, -y, sizeMap, colorMap, 'filled', 'MarkerEdgeColor', 'none'); % flip the y because now anterior is negative
+            % plot the cells in the gui panel
+            if isempty(obj.guiH) || ~isvalid(obj.guiH.figH)
+                obj.buildGUI();
+            else
+                % reset the button color to default
+                set(obj.guiH.buttonYesH, 'BackgroundColor', [0.94, 0.94, 0.94]);
+                set(obj.guiH.buttonNoH, 'BackgroundColor', [0.94, 0.94, 0.94]);
+                set(obj.guiH.buttonGoodH, 'BackgroundColor', [0.94, 0.94, 0.94]);
+            end
+
+            % rename the gaussPanel to spatial footprints
+            set(obj.guiH.gaussPanel, 'Title', 'Spatial Footprints');
+
+            % fullscreen size of figH
+            set(obj.guiH.figH, 'Position', [50,200,1600,750]);
+            axH = uiaxes(obj.guiH.gaussPanel, 'Position', [10,10,600,600]);
+            s = scatter(axH, x, -y, sizeMap, colorMap, 'filled', 'MarkerEdgeColor', 'none'); % flip the y because now anterior is negative
             s.AlphaData = alphaMap;
             s.MarkerFaceAlpha = 'flat';
             % plot arrow legends to indicate the preferred direction of sigTuning cells
-            hold on;
+            hold(axH, 'on')
 
             for j = 1:length(mvtDir)
-                quiver(0, 0, 0.5 * cosd(mvtDir(j)), 0.5 * sind(mvtDir(j)), 'Color', mvtDirColor(j, :), 'LineWidth', 1);
+                quiver(axH, 0, 0, 0.5 * cosd(mvtDir(j)), 0.5 * sind(mvtDir(j)), 'Color', mvtDirColor(j, :), 'LineWidth', 1);
             end
 
             % overlay the region of sensory and motor cortex
@@ -630,8 +660,8 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
             coordsAvgMotor = mean(coordsMotor, 3);
 
             % plot the sensory region in blue dashed line, motor region in red dashed line
-            plot(coordsSensory(:, 1), coordsSensory(:, 2), 'b--', 'LineWidth', 1);
-            plot(coordsAvgMotor(:, 1), coordsAvgMotor(:, 2), 'r--', 'LineWidth', 1);
+            plot(axH, coordsSensory(:, 1), coordsSensory(:, 2), 'b--', 'LineWidth', 1);
+            plot(axH, coordsAvgMotor(:, 1), coordsAvgMotor(:, 2), 'r--', 'LineWidth', 1);
 
             % set the axis limits
             xlim([-4.5, 0.5]);
@@ -639,8 +669,9 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
             axis equal;
 
             % set the axis labels
-            xlabel('Medial-Lateral (mm)');
-            ylabel('Anterior-Posterior (mm)');
+            xlabel(axH, 'Medial-Lateral (mm)');
+            ylabel(axH, 'Anterior-Posterior (mm)'); 
+         
 
             % select point in the plot to display the cell index
             set(s, 'ButtonDownFcn', @(src, event) ClickCallback(src, event, obj, data));
@@ -687,13 +718,9 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
                 set(obj.guiH.label1H, 'Text', str2disp1);
                 set(obj.guiH.label2H, 'Text', str2disp2);
                 delete(obj.guiH.tunePanel.Children)
-                delete(obj.guiH.gaussPanel.Children)
                 fig1 = plotDirTune(trigData, cellIdx);
                 copyobj(fig1.Children, obj.guiH.tunePanel);
                 close(fig1);
-                [~,fig2] = fitGaussOut(trigData, cellIdx, 1);
-                copyobj(fig2.Children, obj.guiH.gaussPanel);
-                close(fig2);
 
                 % change button color according to the goodResp value
                 if data.goodResp(i) == 2
@@ -716,12 +743,127 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
             save(fullfile(obj.folderPath, 'TrigData.mat'), 'obj');
             fprintf('Saved WFS object to %s\n', obj.folderPath);
             obj.guiH = guiHCopy;
+            saveObjToStruct(obj,fullfile(obj.folderPath, 'TrigDataStruct.mat'))
         end
 
         %% load the object
         function obj = Load(obj)
             result = load(fullfile(obj.folderPath, 'TrigData.mat'));
             obj = result.obj;
+        end
+
+        %% plot the spatial footprints
+        function PlotSpatialFootprints(obj,options)
+            arguments
+                obj;
+                options.respScoreThresh (1, 1) double = 2;
+                options.mouseFilter = 'All';
+                options.plotNoResp (1, 1) logical = false;
+            end
+
+            % sort the fileTableExp by sigResp and sigTuning so that sigResp cells, sigTuning cells are plotted on top
+            data = sortrows(obj.fileTableExp, {'goodResp', 'sigTuning'}, 'ascend');
+
+            % filter cells with goodResp greater than respScoreThresh
+            data.sigResp(data.goodResp < options.respScoreThresh) = 0;
+            data.sigTuning(data.goodResp < options.respScoreThresh) = 0;
+            data.gaussianPD(data.goodResp < options.respScoreThresh) = NaN;
+            data.eightDirPD(data.goodResp < options.respScoreThresh) = NaN;
+
+            if ~options.plotNoResp
+                data = data(data.goodResp >= options.respScoreThresh, :);
+            end
+
+            if ~strcmp(options.mouseFilter, 'All')
+                data = data(ismember(data.mouse, options.mouseFilter), :);
+            end
+
+            % correct gaussianPD and eightDirPD
+            data.gaussianPD(data.gaussianPD < 0) = data.gaussianPD(data.gaussianPD < 0) + 360;
+            data.gaussianPD(data.gaussianPD > 360) = data.gaussianPD(data.gaussianPD > 360) - 360;
+            eightDirPD = 0:45:360;
+            [~, idx] = min(abs(data.gaussianPD - eightDirPD), [], 2);
+            data.eightDirPD = eightDirPD(idx)';
+            data.eightDirPD(data.eightDirPD == 360) = 0;
+            data.eightDirPD(isnan(data.gaussianPD)) = NaN;
+
+            % get the plot coordinates of the cells
+            x = data.centerX;
+            y = data.centerY;
+
+            % compute the color of the cells
+            colorMap = zeros(height(data), 3) + 0.8; % default color is gray
+            colorMap(data.sigResp, :) = 0; % sigResp cells are black
+            eightDirPDsigTuning = data.eightDirPD(~isnan(data.eightDirPD)) ./ 360;
+            eightDirPDsigTuning(:, 2) = 1;
+            eightDirPDsigTuning(:, 3) = 1;
+            colorMap(~isnan(data.eightDirPD), :) = hsv2rgb(eightDirPDsigTuning); % sigTuning cells are colored by eightDirPD
+            mvtDir = [0, 45, 90, 135, 180, 225, 270, 315];
+            mvtDirColor = zeros(length(mvtDir), 3);
+            mvtDirColor(:, 1) = mvtDir ./ 360;
+            mvtDirColor(:, 2) = 1;
+            mvtDirColor(:, 3) = 1;
+            mvtDirColor = hsv2rgb(mvtDirColor);
+            % compute the alpha of the cells
+            alphaMap = zeros(height(data), 1) + 1; % default alpha is 0.5
+            alphaMap(data.sigResp, :) = 1; % sigResp cells are 1
+            % compute the size of the cells
+            sizeMap = zeros(height(data), 1) + 15; % default size is 15
+            sizeMap(data.sigResp, :) = 30; % sigResp cells are 30
+
+            % plot the cells in a new figure
+            figure('Name', 'Spatial Footprints', 'Position', [50, 200, 1600, 750]);
+            axH = axes;
+            s = scatter(axH, x, -y, sizeMap, colorMap, 'filled', 'MarkerEdgeColor', 'none'); % flip the y because now anterior is negative
+            s.AlphaData = alphaMap;
+            s.MarkerFaceAlpha = 'flat';
+            % plot arrow legends to indicate the preferred direction of sigTuning cells
+            hold(axH, 'on')
+
+            for j = 1:length(mvtDir)
+                quiver(axH, 0, 0, 0.5 * cosd(mvtDir(j)), 0.5 * sind(mvtDir(j)), 'Color', mvtDirColor(j, :), 'LineWidth', 1);
+            end
+
+            % overlay the region of sensory and motor cortex
+            googleSheetId = '1-XTF4-4M5bmvE0f--Af_9g4OFYRJFnMmkXPPNAn1L6c';
+            googleSheetBook = 'Coord';
+            coords = readGoogleSheet(googleSheetId, googleSheetBook);
+            % group data and calculate mask for each region
+            [gIdx, coordsTable] = findgroups(coords(:, {'Region', 'Innervation'}));
+
+            for n = 1:length(unique(gIdx))
+                coordsNow = coords(gIdx == n, :);
+                coordsNowXy = [coordsNow.CoordX, coordsNow.CoordY];
+                coordsNowXy(end + 1, :) = coordsNowXy(1, :); %#ok<AGROW>
+                coordsTable.Coords{n} = coordsNowXy;
+            end
+
+            % mask of sensory region
+            coordsTableSensory = coordsTable(strcmp(coordsTable.Region, 'Sensory'), :);
+            coordsSensory = coordsTableSensory.Coords{1};
+            % mask of motor region
+            coordsTableMotor = coordsTable(strcmp(coordsTable.Region, 'Motor'), :);
+            maxVertices = max(cellfun(@(x) size(x, 1), coordsTableMotor.Coords));
+            % interpolate coordinates to have same number of vertices
+            coordsTableMotor.Coords = cellfun(@(x) interp1(1:size(x, 1), x, linspace(1, size(x, 1), maxVertices)), coordsTableMotor.Coords, 'UniformOutput', false);
+            % calculate mean coordinates of motor region
+            coordsMotor = cat(3, coordsTableMotor.Coords{:});
+            coordsAvgMotor = mean(coordsMotor, 3);
+
+            % plot the sensory region in blue dashed line, motor region in red dashed line
+            plot(axH, coordsSensory(:, 1), coordsSensory(:, 2), 'b--', 'LineWidth', 1);
+            plot(axH, coordsAvgMotor(:, 1), coordsAvgMotor(:, 2), 'r--', 'LineWidth', 1);
+
+            % set the axis limits
+            xlim([-4.5, 0.5]);
+            ylim([-2.5, 2.5]);
+            axis equal;
+
+            % set the axis labels
+            xlabel(axH, 'Medial-Lateral (mm)');
+            ylabel(axH, 'Anterior-Posterior (mm)');
+
+
         end
 
     end

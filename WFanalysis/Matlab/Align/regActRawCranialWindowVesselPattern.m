@@ -1,15 +1,16 @@
 function regActRawCranialWindowVesselPattern(refImPath, actTifPath, P)
 % function to register the cranial window vessel pattern of the activation image to the template image collected during the surgery
-
+autoFlag = 1; % 1: auto, 0: show some figure for manual inspection
 % dir and path
-mouse = strrep(char(strrep(findMouse(refImPath),'m','s')), 'b','s'); % for the template image, the mouse starts with 's'
+mouse = findMouse(refImPath); % for the template image, the mouse starts with 's'
 session = findSession(refImPath);
-templateImPath = fullfile(P.dir.coorTransformImage, [mouse, '.jpg']);
+templateImPath = fullfile(P.dir.coorTransformImage, [mouse(2:end), '.jpg']);
 actTifRegPath = strrep(strrep(actTifPath, 'Raw', 'Reg'), 'ACT.tif', 'REG.tif');
 actRefImRegPath = strrep(strrep(actTifPath, 'Raw', 'Reg'), 'ACT.tif', 'REF.jpg');
 actDataPath = strrep(actTifPath, '.tif', '.mat');
 actRegDataPath = strrep(strrep(actTifPath,'Raw','Reg'),'ACT.tif','REG.mat');
 actRegXysPath = fullfile(P.dir.regXy, [mouse, '_', session, '_XYreg.mat']);
+actMaskPath = fullfile(P.dir.regXy, [mouse, '_', session, '_RoiMask.mat']);
 
 % skip if the registered data already exists
 if exist(actRegDataPath, 'file') && exist(actRegXysPath, 'file') && exist(actRefImRegPath, 'file') && exist(actTifRegPath, 'file')
@@ -17,7 +18,12 @@ if exist(actRegDataPath, 'file') && exist(actRegXysPath, 'file') && exist(actRef
 end
 
 % read the template image
-tfObj = load(fullfile(P.dir.coorTransformImage, [mouse, '.mat'])).obj;
+try
+    tfObj = load(fullfile(P.dir.coorTransformImage, [mouse, '_', session, '.mat'])).obj;
+catch
+    return
+end
+refControlPoints = tfObj.controlPointsRecInitial;
 templateControlPoints = tfObj.controlPointsRef;
 templateBregmaPixel = tfObj.bregmaCoorPixel;
 templateRefPointsPixel = tfObj.refPointsCoorPixel;
@@ -35,12 +41,18 @@ actData.imAvgViolet = rot90(actData.imAvgViolet,2);
 actData.IMcorr = rot90(actData.IMcorr,2);
 
 % draw and create new imMask
-figure('Color', 'w', 'Name', 'Draw the mask', 'Position', get(0, 'ScreenSize'));
-imshow(refIm);
-title('Draw the mask');
-hF = drawpolygon();
-actData.imMask = createMask(hF);
-close(gcf);
+if exist(actMaskPath, 'file')
+    actData.imMask = load(actMaskPath).imMask;
+else
+    figure('Color', 'w', 'Name', 'Draw the mask', 'Position', get(0, 'ScreenSize'));
+    imshow(refIm);
+    title('Draw the mask');
+    hF = drawpolygon();
+    imMask = createMask(hF);
+    actData.imMask = imMask;
+    close(gcf);
+    save(actMaskPath, 'imMask');
+end
 
 
 % register the reference image to the template image
@@ -49,11 +61,18 @@ try
     refControlPoints = controlPoints.controlPointsRef;
     templateControlPoints = controlPoints.controlPointsTemplate;
 catch
-    refControlPoints = repmat([256, 256], 6, 1);
 end
 
-[controlPointsRef, controlPointsTemplate] = cpselect(refIm, templateIm, refControlPoints, templateControlPoints, 'Wait', true);
+if autoFlag == 0
+    [controlPointsRef, controlPointsTemplate] = cpselect(refIm, templateIm, refControlPoints, templateControlPoints, 'Wait', true);
+else
+    controlPointsRef = refControlPoints;
+    controlPointsTemplate = templateControlPoints;
+end
+
 transformer = fitgeotform2d(controlPointsRef, controlPointsTemplate, 'similarity');
+
+
 actImWarpped = imwarp(actIm, transformer, 'OutputView', imref2d(size(templateIm)));
 
 % find the bregma position in the refIm
@@ -93,18 +112,36 @@ actData.imAvgViolet = imresize(actData.imAvgViolet, refImPixel2mm / 0.018);
 actData.IMcorr = imresize(actData.IMcorr, refImPixel2mm / 0.018);
 actData.imMask = imresize(actData.imMask, refImPixel2mm / 0.018);
 
-% crop the refIm to 512x512 around the center
-startPixelIdx = round(size(refIm, 1) / 2 - 256);
-endPixelIdx = startPixelIdx + 511;
-refIm = refIm(startPixelIdx:endPixelIdx, startPixelIdx:endPixelIdx);
-actIm = actIm(startPixelIdx:endPixelIdx, startPixelIdx:endPixelIdx,:);
-actData.imAvgBlue = actData.imAvgBlue(startPixelIdx:endPixelIdx, startPixelIdx:endPixelIdx,:);
-actData.imAvgViolet = actData.imAvgViolet(startPixelIdx:endPixelIdx, startPixelIdx:endPixelIdx,:);
-actData.IMcorr = actData.IMcorr(startPixelIdx:endPixelIdx, startPixelIdx:endPixelIdx,:);
-actData.imMask = actData.imMask(startPixelIdx:endPixelIdx, startPixelIdx:endPixelIdx);
+% crop the refIm to 512x512 around the center if the refIm is larger than 512x512
+if size(refIm, 1) >= 512
+    startPixelIdx = round(size(refIm, 1) / 2 - 256);
+    endPixelIdx = startPixelIdx + 511;
+    refIm = refIm(startPixelIdx:endPixelIdx, startPixelIdx:endPixelIdx);
+    actIm = actIm(startPixelIdx:endPixelIdx, startPixelIdx:endPixelIdx,:);
+    actData.imAvgBlue = actData.imAvgBlue(startPixelIdx:endPixelIdx, startPixelIdx:endPixelIdx,:);
+    actData.imAvgViolet = actData.imAvgViolet(startPixelIdx:endPixelIdx, startPixelIdx:endPixelIdx,:);
+    actData.IMcorr = actData.IMcorr(startPixelIdx:endPixelIdx, startPixelIdx:endPixelIdx,:);
+    actData.imMask = actData.imMask(startPixelIdx:endPixelIdx, startPixelIdx:endPixelIdx);
+else
+    padPixels = 512 - size(refIm, 1);
+    padPixel = [floor(padPixels / 2), ceil(padPixels / 2)];
+    refIm = padarray(refIm, [padPixel(1), padPixel(1)], 0, 'pre');
+    refIm = padarray(refIm, [padPixel(2), padPixel(2)], 0, 'post');
+    actIm = padarray(actIm, [padPixel(1), padPixel(1)], 0, 'pre');
+    actIm = padarray(actIm, [padPixel(2), padPixel(2)], 0, 'post');
+    actData.imAvgBlue = padarray(actData.imAvgBlue, [padPixel(1), padPixel(1)], 0, 'pre');
+    actData.imAvgBlue = padarray(actData.imAvgBlue, [padPixel(2), padPixel(2)], 0, 'post');
+    actData.imAvgViolet = padarray(actData.imAvgViolet, [padPixel(1), padPixel(1)], 0, 'pre');
+    actData.imAvgViolet = padarray(actData.imAvgViolet, [padPixel(2), padPixel(2)], 0, 'post');
+    actData.IMcorr = padarray(actData.IMcorr, [padPixel(1), padPixel(1)], 0, 'pre');
+    actData.IMcorr = padarray(actData.IMcorr, [padPixel(2), padPixel(2)], 0, 'post');
+    actData.imMask = padarray(actData.imMask, [padPixel(1), padPixel(1)], 0, 'pre');
+    actData.imMask = padarray(actData.imMask, [padPixel(2), padPixel(2)], 0, 'post');
+
+end
 
 % show the refIm and the window center
-figure('Color', 'w', 'Name', 'Registration', 'Position', get(0, 'ScreenSize'));
+regFigH  = figure('Color', 'w', 'Name', 'Registration', 'Position', get(0, 'ScreenSize'), "Visible", "off");
 subplot(2,2,1);
 imRefAct = imfuse(refIm, actIm, 'blend');
 imshow(imRefAct);
@@ -124,10 +161,21 @@ imshowFrame(actData.IMcorr(:,:,28));
 subplot(2,2,4);
 imshowFrameRefBregma(im2gray(actIm));
 
-exportgraphics(gcf, strrep(actRefImRegPath, 'REF', 'REGIMG'), 'Resolution', 300);
+exportgraphics(regFigH, strrep(actRefImRegPath, 'REF', 'REGIMG'), 'Resolution', 300);
+
+if autoFlag == 0
+    set(regFigH, 'Visible', 'on');
+else
+    close(regFigH);
+end
 
 % ask the user whether the registration is correct
-answer = questdlg('Is the registration correct?', 'Registration', 'Yes', 'No', 'Yes');
+if autoFlag == 0
+    answer = questdlg('Is the registration correct?', 'Registration', 'Yes', 'No', 'Yes');
+else
+    answer = 'Yes';
+end
+
 if strcmp(answer, 'No')
     keyboard
 else

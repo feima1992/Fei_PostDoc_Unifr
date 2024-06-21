@@ -280,7 +280,11 @@ classdef Frames < handle
         function ImShowFrame(obj, frameId, varargin)
 
             if nargin == 1
-                frameId = 1:obj.frameSize(3);
+                if length(obj.frameSize) == 2
+                    frameId = 1;
+                else
+                    frameId = 1:obj.frameSize(3);
+                end
             end
 
             % create figure

@@ -1,5 +1,9 @@
-## Class to perform widefield imaging with single cell resolution using mescore package
-
+## Wrapped class to perform widefield imaging with single cell resolution using mescore package CNMF-E algorithm
+# By fei 2023-02-21 mafei1992@outlook.com
+# To install caiman along with mescore: [GitHub - nel-lab/mesmerize-core: High level pandas-based API for batch analysis of Calcium Imaging data using CaImAn](https://github.com/nel-lab/mesmerize-core)
+# To call caiman and mescore functions: [User Guide — mesmerize-core 0.3.0 documentation](https://mesmerize-core.readthedocs.io/en/latest/user_guide.html)
+# The detected neuron components can be exported to a .mat file for further analysis in MATLAB
+# Simple usage: WFS().RunAll().Eval().Register().ExportSessionRegister().ExportCoordAndTrace(); 
 #%% Importing necessary libraries
 import os
 import re

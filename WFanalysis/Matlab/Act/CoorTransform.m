@@ -36,7 +36,7 @@ classdef CoorTransform < handle
             % get the folder of the reference image
             funcPath = mfilename('fullpath');
             funcDisk = funcPath(1:3);
-            obj.folder = [funcDisk, 'users\Fei\DataAnalysis\Utilities\CoorTransform\'];
+            obj.folder = [funcDisk, 'users\Fei\DataAnalysis\Utilities\CoorTransformWF\'];
         end
 
         function obj = Init(obj, refImage, recImage)
@@ -81,7 +81,7 @@ classdef CoorTransform < handle
 
             % set the reference image if not set
             if isempty(obj.refImage)
-                [refImName, ~] = uigetfile(obj.folder, 'Select the reference image');
+                [refImName, ~] = uigetfile({'*.jpg;*.png;*.tif','Image files'},'Select the reference image',obj.folder);
                 if refImName == 0
                     error('No reference image selected');
                 end
@@ -90,7 +90,7 @@ classdef CoorTransform < handle
 
             % set the record image if not set
             if isempty(obj.recImage)
-                [recImName, ~] = uigetfile(obj.folder, 'Select the record image');
+                [recImName, ~] = uigetfile({'*.jpg;*.png;*.tif','Image files'},'Select the record image',obj.folder);
                 if recImName == 0
                     error('No record image selected');
                 end
@@ -99,12 +99,34 @@ classdef CoorTransform < handle
                 obj.session = findSession(recImName);
             end
 
+            % try to load the object of this mouse if it exists
+            try
+                objMouse = load(fullfile(obj.folder, [obj.mouse(2:end), '.mat'])).obj;
+                obj.refPointsCoorPixel = objMouse.refPointsCoorPixel;
+                obj.refPointsCoorReal = objMouse.refPointsCoorReal;
+                obj.bregmaCoorPixel = objMouse.bregmaCoorPixel;
+                obj.bregmaCoorReal = objMouse.bregmaCoorReal;
+                obj.winCenterCoorPixel = objMouse.winCenterCoorPixel;
+                obj.winCenterCoorReal = objMouse.winCenterCoorReal;
+                obj.controlPointsRefInitial = objMouse.controlPointsRefInitial;
+                obj.controlPointsRef = objMouse.controlPointsRef;
+                obj.SelectRefPoints = objMouse.SelectRefPoints;
+                fprintf('Load information from %s\n', [obj.mouse, '.mat']);
+            catch
+                % do nothing
+            end
+
+            % enhance the contrast of the reference image for better visualization when cpselect
+            obj.refImage = rgb2hsv(obj.refImage);
+            obj.refImage(:,:,3) = histeq(obj.refImage(:,:,3));
+            obj.refImage = hsv2rgb(obj.refImage);
+
             % transform the coordinates
             obj = obj.TransformCoor();
             % convert the unit
             obj = obj.ConvertUnit();
             % save the Transformer
-            obj.Save();
+            obj.Save(1);
 
         end
 
@@ -125,7 +147,11 @@ classdef CoorTransform < handle
 
         end
 
-        function obj = ConvertUnit(obj, redo)
+        function obj = ConvertUnit(obj, options)
+            arguments
+                obj
+                options.overwriteFlag (1,1) logical = false
+            end
             
             obj.objSelectRefPoints.figH = uifigure('Name', 'Select reference points');
             obj.objSelectRefPoints.gl  = uigridlayout(obj.objSelectRefPoints.figH, [3, 2]);
@@ -176,7 +202,7 @@ classdef CoorTransform < handle
             obj.objSelectRefPoints.tbHbregma.Layout.Column = 2;
 
             % get the reference point coordinate 1 in pixel
-            if redo
+            if options.overwriteFlag
                 obj.refPointsCoorPixel = [];
             end
             
@@ -285,7 +311,7 @@ classdef CoorTransform < handle
                 overwriteFlag = false;
             end
             % save the mouse specific object
-            savePathMouse = fullfile(obj.folder, [obj.mouse, '.mat']);
+            savePathMouse = fullfile(obj.folder, [obj.mouse(2:end), '.mat']);
             savePathMouseSession = fullfile(obj.folder, [obj.mouse, '_', obj.session, '.mat']);
 
             if ~isfile(savePathMouseSession) || overwriteFlag
@@ -309,6 +335,8 @@ classdef CoorTransform < handle
             obj.recImageRecovered = [];
             obj.controlPointsRec = [];
             obj.transformer = [];
+            obj.objSelectRefPoints = [];
+            
         end
 
         %% Load the object

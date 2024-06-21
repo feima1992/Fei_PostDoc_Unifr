@@ -17,6 +17,12 @@ objActRawLimbMvt = Align_LimbMvt(objParamLimbMvt, objFileTableTifWf, objFileTabl
 objActRawLimbMvt.Reg('cranialWindowVesselPattern');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Reg from raw act
-objFileTableActRaw = FileTable_Act_Raw().Filter('mouse',{'m2376'});
+% Reg from raw act LimbMvt
+objFileTableActRaw = FileTable_Act_Raw().Filter('mouse',@(X)contains(X,'m237')).Remove('mouse','m2371');
 objFileTableActRaw.Reg('cranialWindowVesselPattern')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Reg from raw act Limbvib
+objFileTableActRaw = FileTable_Act_Raw().Filter('mouse',@(X)contains(X,'b237')).Remove('mouse','b2371');
+objFileTableActRaw.Reg('cranialWindowVesselPattern')
+

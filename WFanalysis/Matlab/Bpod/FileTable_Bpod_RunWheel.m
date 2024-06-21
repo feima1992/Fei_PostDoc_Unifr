@@ -23,9 +23,9 @@ classdef FileTable_Bpod_RunWheel < FileTable_Bpod
             xlabel('Time(s)');
             ylabel('Probability');
             title('Time duration of single wheel turn');
-            lowThreshold = 0.25;
-            highThreshold = 1;
-            rectangle('Position', [lowThreshold, 0, highThreshold - lowThreshold, gca().YLim(2)], 'EdgeColor', 'r', 'LineStyle', '--', 'LineWidth', 1);
+            lowThreshold = 0.2; % low threshold is set according to the histogram plot (daul peak distribution)
+            highThreshold = max(wheelRunDuration); % high threshold is the max value after removing outliers
+            xline(lowThreshold,  'LineStyle', '--', 'LineWidth', 1, 'Color','r');
             % filter out wheel run duration that are too short or too long
             for i = 1:height(obj.fileTable)
                 wheelRunStartEndTimes = obj.fileTable.wheelRunStartEndTimes{i};
@@ -33,7 +33,7 @@ classdef FileTable_Bpod_RunWheel < FileTable_Bpod
                     continue;
                 end
                 wheelRunDuration = wheelRunStartEndTimes(:, 2) - wheelRunStartEndTimes(:, 1);
-                idx = (wheelRunDuration >= lowThreshold) & (wheelRunDuration <= highThreshold);
+                idx = (wheelRunDuration >= lowThreshold & wheelRunDuration <= highThreshold);
                 obj.fileTable.wheelRunStartEndTimes{i} = wheelRunStartEndTimes(idx, :);
                 obj.fileTable.wheelRunDuration{i} = wheelRunDuration(idx);
                 obj.fileTable.wheelRunTurns{i} = sum(idx);
@@ -62,8 +62,13 @@ classdef FileTable_Bpod_RunWheel < FileTable_Bpod
             % remove sessions that have no wheel turns
             gTable(cell2mat(gTable.wheelRunDist) == 0, :) = [];
             % remove the first 5 sessions where the hardware was not working properly yet
-            gTable(1:4, :) = [];
+            gTable(1:4, :) = []; 
             gTable(end, :) = [];
+
+            % export the table to csv
+            writetable(gTable, 'wheelRunAnalysis.csv', 'WriteVariableNames', true);
+
+            
             nDays = height(gTable) + 4*2; % 4 weeks of weekends
             nMouse = 5;
             avgRopePullNum = sum(cell2mat(gTable.ropePullNum)) / nDays / nMouse;

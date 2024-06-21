@@ -64,7 +64,7 @@ classdef Param < handle
 
             dir.bp = fullfile(obj.folderUser, 'Bpod\Bpod Local\Data\'); % directory of bpod data
             dir.refImage = fullfile(obj.folderParent, 'Utilities\RefImage'); % directory of reference images
-            dir.coorTransformImage = fullfile(obj.folderParent, 'Utilities\CoorTransform'); % directory of coordinate transformation images
+            dir.coorTransformImage = fullfile(obj.folderParent, 'Utilities\CoorTransformWF'); % directory of coordinate transformation images
             dir.regXy = fullfile(obj.folderParent, 'Utilities\RegXy'); % directory of coordinate registration files
             dir.actMap.raw = fullfile(obj.folderWf, 'ActMap\Raw'); % directory of activation maps: raw
             dir.actMap.reg = fullfile(obj.folderWf, 'ActMap\Reg'); % directory of activation maps: registered

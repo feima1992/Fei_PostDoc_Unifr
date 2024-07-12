@@ -1,6 +1,7 @@
 classdef Rg < handle
     properties
-        dataPath = Param().folderParent;
+        % dataPath = Param().folderParent;
+        dataPath = 'D:\WF'
         resultPath = fullfile(Param().folderFigure, 'ReachingGrasping')
         objRegIMcorr;
         objRegIMcorrCopy;      
@@ -11,7 +12,9 @@ classdef Rg < handle
     methods
         %% Constructor
         function obj = Rg()
-            
+            if ~exist(obj.resultPath, 'dir')
+                mkdir(obj.resultPath);
+            end  
         end
         
         %% Export active map properties

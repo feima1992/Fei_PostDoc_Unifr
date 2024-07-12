@@ -32,6 +32,7 @@ function expendedTable = expendColumn(aTable, var)
         elseif istable(tablePart2)
             expendedTable = [expendedTable; hCombineTable(tablePart1, tablePart2)];
         end
+
     end
 
 end

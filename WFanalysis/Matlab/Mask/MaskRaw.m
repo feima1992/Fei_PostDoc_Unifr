@@ -85,6 +85,7 @@ classdef MaskRaw < handle
             if ~isempty(ax)
                 axes(ax);
             end
+
             % if roiId is not provided, plot all
             if isempty(roiId)
                 roiId = 1:length(obj.roiParam.centerX);

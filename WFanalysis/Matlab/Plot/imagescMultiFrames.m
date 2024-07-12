@@ -16,10 +16,12 @@ function imagescMultiFrames(frameCell, options)
 
     % automatic clim
     if isempty(options.clim)
+
         if options.autoClim
             options.clim = max(abs([min(cellfun(@(x) min(x(:)), frameCell)), max(cellfun(@(x) max(x(:)), frameCell))])) * [-1, 1];
             options.colorbar = false;
         end
+
     else
         options.colorbar = false;
     end
@@ -90,4 +92,5 @@ function imagescMultiFrames(frameCell, options)
     if ~isempty(options.sgtitle)
         sgtitle(options.sgtitle);
     end
+
 end

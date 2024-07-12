@@ -15,74 +15,97 @@ function [tableOut, keepRows] = filterRow(tableIn, varargin)
     %                  Filter can also be a function handle, in which case the function should take n values as input and return a logical value, where n is the length of the variable name cell array
     %                   example: filterRow(tableIn, {'Var1', 'Var2'}, @(x, y) x==1 & y>2)
 
-%% validate inputs
+    %% validate inputs
     if ~istable(tableIn)
         error('tableIn must be a table')
     end
+
     if mod(length(varargin), 2) ~= 0
         error('varargin must be a series of variable-filterName pairs')
     end
 
-%% filterName rows
+    %% filterName rows
     % get row indices to keep
     keepRows = true(height(tableIn), 1);
+
     for i = 1:2:length(varargin)
         % get variable name
         varName = varargin{i};
         % get filterName
-        filterName = varargin{i+1};
+        filterName = varargin{i + 1};
+
         if iscell(filterName) && all(cellfun(@isnumeric, filterName))
             filterName = cell2mat(filterName);
         end
+
         % skip if variable not found in table
-        if ~ all(ismember(varName, tableIn.Properties.VariableNames))
+        if ~all(ismember(varName, tableIn.Properties.VariableNames))
             warning('variable %s not found in table', varName)
             continue
         end
+
         % apply filterName to variable according to type of variable and filterName
 
         if ischar(varName)
+
             if isa(filterName, 'function_handle')
+
                 try
                     keepRows = keepRows & filterName(tableIn{:, varName});
                 catch ME
                     error('filterRow:%s', ME.message)
                 end
+
             elseif isvector(filterName)
+
                 try
                     keepRows = keepRows & ismember(tableIn{:, varName}, filterName);
                 catch ME
                     error('filterRow:%s', ME.message)
                 end
+
             else
+
                 try
                     keepRows = keepRows & tableIn{:, varName} == filterName;
                 catch ME
                     error('filterRow:%s', ME.message)
                 end
+
             end
+
         elseif iscell(varName)
+
             if isa(filterName, 'function_handle')
+
                 if nargin(filterName) ~= length(varName)
                     error('number of inputs to filterName function must match number of variables')
                 else
+
                     try
                         inputArgs = cell(1, length(varName));
+
                         for j = 1:length(varName)
                             inputArgs{j} = tableIn{:, varName{j}};
                         end
+
                         keepRows = keepRows & filterName(inputArgs{:});
                     catch ME
                         error('filterRow:%s', ME.message)
                     end
+
                 end
+
             else
                 error('filterName must be a function handle if variable name is a cell array')
             end
+
         else
             error('variable name must be a value or a cell array of values')
-        end    
+        end
+
     end
+
     % filterName table
     tableOut = tableIn(keepRows, :);
 end

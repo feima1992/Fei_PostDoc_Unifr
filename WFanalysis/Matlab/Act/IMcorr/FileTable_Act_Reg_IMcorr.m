@@ -19,30 +19,34 @@ classdef FileTable_Act_Reg_IMcorr < FileTable_Act_Reg
         end
 
         %% Calculate Act map
-        function obj = CalActMap(obj,threValue)
+        function obj = CalActMap(obj, threValue)
+
             if nargin < 2
                 threValue = 0.5;
                 fprintf('   Using default threshold value %.2f\n', threValue)
             end
-            
+
             if ~ismember('IMcorr', obj.fileTable.Properties.VariableNames)
                 obj.LoadIMcorr();
             end
+
             for i = 1:height(obj.fileTable)
                 obj.fileTable.IMcorr{i} = Frames_IMcorr(obj.fileTable.IMcorr{i}).CalActMap(threValue).frameData;
             end
+
         end
+
         %% Group average Act map
         function obj = CalAvgIMcorr(obj, groupby)
+
             if ~ismember('IMcorr', obj.fileTable.Properties.VariableNames)
                 obj.CalActMap();
             end
 
-            [gIdx,gName] = findgroups(obj.fileTable(:,groupby));
-            IMcorr = splitapply(@(X){mean(cat(4,X{:}),4)},obj.fileTable.IMcorr,gIdx);
+            [gIdx, gName] = findgroups(obj.fileTable(:, groupby));
+            IMcorr = splitapply(@(X){mean(cat(4, X{:}), 4)}, obj.fileTable.IMcorr, gIdx);
             obj.fileTable = [gName, table(IMcorr)];
         end
-
 
         %% Calculate IMcorr properties
         function obj = CalActProps(obj)
@@ -51,9 +55,11 @@ classdef FileTable_Act_Reg_IMcorr < FileTable_Act_Reg
                 obj.LoadIMcorr();
                 obj.CalActMap();
             end
+
             uenoMask = MaskUeno();
+
             for i = 1:height(obj.fileTable)
-                obj.fileTable.IMcorr{i} = Frames_IMcorr(obj.fileTable.IMcorr{i}, Param().wfAlign.frameTime,uenoMask).CalRegionProps().frameProps;
+                obj.fileTable.IMcorr{i} = Frames_IMcorr(obj.fileTable.IMcorr{i}, Param().wfAlign.frameTime, uenoMask).CalRegionProps().frameProps;
             end
 
             obj.fileTable = expendColumn(obj.fileTable, 'IMcorr');

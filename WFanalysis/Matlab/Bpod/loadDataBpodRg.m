@@ -4,6 +4,7 @@ end
 
 function trialInfo = loadDataBpodRgHelper(data)
     protocolId = any(contains(fieldnames(data.RawEvents.Trial{1, 1}.States), 'reach', 'IgnoreCase', true)) + 1;
+
     switch protocolId
         case 1
             trialInfo = loadDataBpodRgHelperOldProtocol(data);
@@ -36,11 +37,15 @@ function trialInfo = loadDataBpodRgHelperOldProtocol(data)
     % get number of reaches and touches
     % get number of touches
     tTouches = cell(1, data.nTrials);
+
     for i = 1:data.nTrials
-        if isfield(data.RawEvents.Trial{1,i}.Events, 'Port3In')
+
+        if isfield(data.RawEvents.Trial{1, i}.Events, 'Port3In')
             tTouches{i} = data.RawEvents.Trial{1, i}.Events.Port3In;
         end
+
     end
+
     % tTouches = cellfun(@(X)X.Events.Port3In, data.RawEvents.Trial, 'UniformOutput', false);
     FunIsBetween = @(X, Y)sum(X >= Y(:, 1) & X <= Y(:, 2));
     trialInfo(:, 7) = cellfun(@(X, Y)FunIsBetween(X, Y), tTouches, tStartStop, 'UniformOutput', false);
@@ -75,20 +80,28 @@ function trialInfo = loadDataBpodRgHelperNewProtocol(data)
     % get number of reaches and touches
     % get number of touches
     tTouches = cell(1, data.nTrials);
+
     for i = 1:data.nTrials
-        if isfield(data.RawEvents.Trial{1,i}.Events, 'Port3In')
+
+        if isfield(data.RawEvents.Trial{1, i}.Events, 'Port3In')
             tTouches{i} = data.RawEvents.Trial{1, i}.Events.Port3In;
         end
+
     end
+
     FunIsBetween = @(X, Y)X >= Y(:, 1) & X <= Y(:, 2);
     trialInfo(:, 7) = cellfun(@(X, Y)sum(FunIsBetween(X, Y)), tTouches, tStartStop, 'UniformOutput', false);
     % number of reaches
     tReaches = cell(1, data.nTrials);
+
     for i = 1:data.nTrials
-        if isfield(data.RawEvents.Trial{1,i}.Events, 'Port4In')
+
+        if isfield(data.RawEvents.Trial{1, i}.Events, 'Port4In')
             tReaches{i} = data.RawEvents.Trial{1, i}.Events.Port4In;
         end
+
     end
+
     FunIsBetween = @(X, Y)X >= Y(:, 1) & X <= Y(:, 2);
     trialInfo(:, 6) = cellfun(@(X, Y)sum(FunIsBetween(X, Y)), tReaches, tStartStop, 'UniformOutput', false);
     % table of output

@@ -34,7 +34,7 @@ classdef FovCorrector < matlab.mixin.Copyable
             % add the isTemplate column
             newFileTable.isTemplate = false(height(newFileTable), 1);
             % add the control points column
-            newFileTable.controlPoints = repmat({[512,512]}, height(newFileTable), 1);
+            newFileTable.controlPoints = repmat({[512, 512]}, height(newFileTable), 1);
             % add the isCorrected column
             newFileTable.isCorrected = false(height(newFileTable), 1);
 
@@ -45,17 +45,20 @@ classdef FovCorrector < matlab.mixin.Copyable
                 existIdx = ismember(newFileTable.path, obj.fileTable.path);
                 obj.fileTable = [obj.fileTable; newFileTable(~existIdx, :)];
             end
+
         end
 
         %% Load the file table
         function obj = LoadFileTable(obj)
+
             try
                 % load the file table
-                loadResult = load(fullfile(obj.workingDir,'FovCorrector.mat'), 'fovInfo');
+                loadResult = load(fullfile(obj.workingDir, 'FovCorrector.mat'), 'fovInfo');
                 obj.fileTable = loadResult.fovInfo;
             catch
                 obj.fileTable = table();
             end
+
         end
 
         %% Select the template file
@@ -69,7 +72,7 @@ classdef FovCorrector < matlab.mixin.Copyable
             obj.gui.tbl.BackgroundColor = [0.94, 0.94, 0.94];
 
             % button to do the and save the correction
-            obj.gui.button = uibutton(obj.gui.tbl, 'Text', 'Correct', 'ButtonPushedFcn', @(src,event) obj.Correct(), 'HorizontalAlignment', 'center');
+            obj.gui.button = uibutton(obj.gui.tbl, 'Text', 'Correct', 'ButtonPushedFcn', @(src, event) obj.Correct(), 'HorizontalAlignment', 'center');
             obj.gui.button.Layout.Row = 1;
             obj.gui.button.Layout.Column = [1, 2];
             obj.gui.button.FontWeight = 'bold';
@@ -84,13 +87,13 @@ classdef FovCorrector < matlab.mixin.Copyable
             obj.gui.label.FontColor = [0.2, 0.2, 0.2];
 
             % table to show the file table
-            obj.gui.tempTable = uitable(obj.gui.tbl, 'Data', obj.fileTable(:,{'mouse','session','isTemplate','isCorrected'}));
+            obj.gui.tempTable = uitable(obj.gui.tbl, 'Data', obj.fileTable(:, {'mouse', 'session', 'isTemplate', 'isCorrected'}));
             obj.gui.tempTable.Layout.Row = 3;
             obj.gui.tempTable.Layout.Column = 1;
             obj.gui.tempTable.ColumnWidth = 'fit';
             obj.gui.tempTable.SelectionType = 'row';
             obj.gui.tempTable.Multiselect = 'off';
-            obj.gui.tempTable.SelectionChangedFcn = @(src,event) obj.SelectTemplateCallback(src, event);
+            obj.gui.tempTable.SelectionChangedFcn = @(src, event) obj.SelectTemplateCallback(src, event);
 
             % label to instruct the user select the to be corrected file
             obj.gui.label = uilabel(obj.gui.tbl, 'Text', 'Select the to be corrected file', 'HorizontalAlignment', 'center');
@@ -100,29 +103,33 @@ classdef FovCorrector < matlab.mixin.Copyable
             obj.gui.label.FontColor = [0.2, 0.2, 0.2];
 
             % table to show the file table
-            obj.gui.correctTable = uitable(obj.gui.tbl, 'Data', obj.fileTable(:,{'mouse','session','isTemplate','isCorrected'}));
+            obj.gui.correctTable = uitable(obj.gui.tbl, 'Data', obj.fileTable(:, {'mouse', 'session', 'isTemplate', 'isCorrected'}));
             obj.gui.correctTable.Layout.Row = 3;
             obj.gui.correctTable.Layout.Column = 2;
             obj.gui.correctTable.ColumnWidth = 'fit';
             obj.gui.correctTable.SelectionType = 'row';
             obj.gui.correctTable.Multiselect = 'on';
-            obj.gui.correctTable.SelectionChangedFcn = @(src,event) obj.SelectToBeCorrectedCallback(src, event);
+            obj.gui.correctTable.SelectionChangedFcn = @(src, event) obj.SelectToBeCorrectedCallback(src, event);
 
         end
 
         function obj = SelectTemplateCallback(obj, src, event)
             selectedRowIdx = event.Selection;
+
             if isempty(selectedRowIdx)
                 return;
             end
+
             obj.selectedTemplateIdx = selectedRowIdx;
         end
 
         function obj = SelectToBeCorrectedCallback(obj, src, event)
             selectedRowIdx = event.Selection;
+
             if isempty(selectedRowIdx)
                 return;
             end
+
             obj.selectedToBeCorrectedIdx = selectedRowIdx;
         end
 
@@ -157,16 +164,19 @@ classdef FovCorrector < matlab.mixin.Copyable
                 % skip the already corrected files
                 if thisIsCorrected == 1
                     overdo = questdlg('The file has already been corrected, do you want to correct it again?', 'Overdo', 'Yes', 'No', 'No');
+
                     if strcmp(overdo, 'No')
                         continue;
                     end
+
                 end
 
                 % check if the mouse and session are the same
-                if ~ strcmp(thisMouse, templateMouse)
+                if ~strcmp(thisMouse, templateMouse)
                     dialog('Title', 'Error', 'String', 'The mouse names are different', 'OK');
                     return;
                 end
+
                 if strcmp(thisSession, templateSession)
                     continue;
                 end
@@ -181,25 +191,27 @@ classdef FovCorrector < matlab.mixin.Copyable
                 templateTifs = tiffreadVolume(templateFile);
                 thisTifs = tiffreadVolume(thisFile);
                 % extract the first frame for control points selection
-                templateTif = imadjust(templateTifs(:,:,1));
-                thisTif = imadjust(thisTifs(:,:,1));
+                templateTif = imadjust(templateTifs(:, :, 1));
+                thisTif = imadjust(thisTifs(:, :, 1));
                 % select control points
                 if size(thisControlPoints, 1) == 1
                     thisControlPoints = templateControlPoints;
                 end
+
                 [controlPointsThis, controlPointsTemplate] = cpselect(thisTif, templateTif, thisControlPoints, templateControlPoints, 'Wait', true);
                 % calculate the transformation
                 transformer = fitgeotform2d(controlPointsThis, controlPointsTemplate, 'similarity');
                 thisTifsCorrected = imwarp(thisTifs, transformer, 'OutputView', imref2d(size(templateTifs)));
                 % inspect the result
                 figMontage = figure('Name', titleStr);
-                montage({templateTif, thisTif, imadjust(thisTifsCorrected(:,:,1))}, 'Size', [1, 3]);
+                montage({templateTif, thisTif, imadjust(thisTifsCorrected(:, :, 1))}, 'Size', [1, 3]);
                 % inspect the max projection overlay
                 figPair = figure('Name', titleStr);
                 imshowpair(imadjust(max(templateTifs, [], 3)), imadjust(max(thisTifsCorrected, [], 3)), 'falsecolor');
-             
+
                 % ask for confirmation with a dialog button
                 choice = questdlg('Save the corrected tif?', 'Save', 'Yes', 'No', 'No');
+
                 if strcmp(choice, 'Yes')
                     % update the control points
                     obj.fileTable.controlPoints{obj.selectedTemplateIdx} = controlPointsTemplate;
@@ -209,17 +221,19 @@ classdef FovCorrector < matlab.mixin.Copyable
                     saveas(figPair, filePathPair);
                     % save the corrected tif back to the file
                     tifWriter = Fast_BigTiff_Write(thisFile);
+
                     for k = 1:size(thisTifsCorrected, 3)
-                        tifWriter.WriteIMG(thisTifsCorrected(:,:,k));
+                        tifWriter.WriteIMG(thisTifsCorrected(:, :, k));
                     end
+
                     tifWriter.close();
                     % mark the file as corrected
                     obj.fileTable.isCorrected(thisFileIdx) = 1;
                     % save the file table
                     obj.SaveFileTable();
                     % update the gui
-                    obj.gui.tempTable.Data = obj.fileTable(:,{'mouse','session','isTemplate','isCorrected'});
-                    obj.gui.correctTable.Data = obj.fileTable(:,{'mouse','session','isTemplate','isCorrected'});
+                    obj.gui.tempTable.Data = obj.fileTable(:, {'mouse', 'session', 'isTemplate', 'isCorrected'});
+                    obj.gui.correctTable.Data = obj.fileTable(:, {'mouse', 'session', 'isTemplate', 'isCorrected'});
                     % close the figures
                     close(figMontage);
                     close(figPair);
@@ -232,15 +246,16 @@ classdef FovCorrector < matlab.mixin.Copyable
                 obj.gui.button.Text = 'Correct';
 
             end
+
         end
 
         %% Save and Load
         function obj = SaveFileTable(obj)
             fovInfo = obj.fileTable;
             % save the file table
-            save(fullfile(obj.workingDir,'FovCorrector.mat'), 'fovInfo');
+            save(fullfile(obj.workingDir, 'FovCorrector.mat'), 'fovInfo');
         end
 
-
     end
+
 end

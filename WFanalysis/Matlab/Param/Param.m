@@ -68,12 +68,6 @@ classdef Param < handle
             dir.regXy = fullfile(obj.folderParent, 'Utilities\RegXy'); % directory of coordinate registration files
             dir.actMap.raw = fullfile(obj.folderWf, 'ActMap\Raw'); % directory of activation maps: raw
             dir.actMap.reg = fullfile(obj.folderWf, 'ActMap\Reg'); % directory of activation maps: registered
-            % dir.actMap.rawDiff = fullfile(obj.folderPath, 'ActMap\RawDiff'); % directory of activation maps: raw difference
-            % dir.actMap.regDiff = fullfile(obj.folderPath, 'ActMap\RegDiff'); % directory of activation maps: registered difference
-            % dir.actRoi.raw = fullfile(obj.folderWf, 'ActRoi\Raw'); % directory of activation ROI: raw
-            % dir.actRoi.reg = fullfile(obj.folderWf, 'ActRoi\Reg'); % directory of activation ROI: registered
-            % dir.actRoi.rawDiff = fullfile(obj.folderPath, 'ActRoi\RawDiff'); % directory of activation ROI: raw difference
-            % dir.actRoi.regDiff = fullfile(obj.folderPath, 'ActRoi\RegDiff'); % directory of activation ROI: registered difference
         end
 
         % path
@@ -97,7 +91,9 @@ classdef Param < handle
                 if ~exist(dirPath{i}, 'dir')
                     mkdir(dirPath{i});
                 end
+
             end
+
         end
 
     end

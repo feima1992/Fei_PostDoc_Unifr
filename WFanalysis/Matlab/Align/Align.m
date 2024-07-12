@@ -37,7 +37,7 @@ classdef Align < handle
             obj.wfBpodTable.pathActRawMat = cellfun(@(X, Y)fullfile(param.dir.actMap.raw, [X, '_', Y, '_ACT.mat']), obj.wfBpodTable.mouse, obj.wfBpodTable.session, 'UniformOutput', false);
             obj.wfBpodTable.pathActRawTif = cellfun(@(X, Y)fullfile(param.dir.actMap.raw, [X, '_', Y, '_ACT.tif']), obj.wfBpodTable.mouse, obj.wfBpodTable.session, 'UniformOutput', false);
         end
-        
+
         function obj = AlignWfBpod(obj)
             % group the data by mouse and session
             groupIdx = findgroups(obj.wfBpodTable(:, {'mouse', 'session'}));
@@ -46,7 +46,7 @@ classdef Align < handle
                 % get the data for the current group
                 currGroup = obj.wfBpodTable(groupIdx == i, :);
                 % save trial info for currGroup
-                writetable(currGroup,strrep(currGroup{1,"pathActRawMat"}{1},'.mat','.csv'))
+                writetable(currGroup, strrep(currGroup{1, "pathActRawMat"}{1}, '.mat', '.csv'))
                 % align the data
                 alignWfBpod(currGroup, obj.param);
             end
@@ -59,6 +59,7 @@ classdef Align < handle
             if nargin < 2
                 windowType = 'clearSkull';
             end
+
             % construct path to corresponding output REG files
             funcRegActName = @(x) strrep(strrep(x, 'ACT', 'REG'), 'Raw', 'Reg');
             obj.wfBpodTable.pathReg = cellfun(funcRegActName, obj.wfBpodTable.pathActRawMat, 'UniformOutput', false);
@@ -95,6 +96,7 @@ classdef Align < handle
                 catch
                     continue
                 end
+
             end
 
             % close all and notify user
@@ -125,12 +127,14 @@ classdef Align < handle
                 end
 
             end
+
             % move the unMatchTrials to the backup folder
             for i = 1:length(unMatchTrials)
 
-                backupTarget = insertAfter(unMatchTrials{i},'WFrecordings\','unMatchTrials\');
+                backupTarget = insertAfter(unMatchTrials{i}, 'WFrecordings\', 'unMatchTrials\');
                 backupFolder = fileparts(backupTarget);
-                if ~ exist(backupFolder,'dir')
+
+                if ~exist(backupFolder, 'dir')
                     mkdir(backupFolder)
                 end
 

@@ -1,4 +1,5 @@
 function stackTable = hCombineTable(table1, table2, varargin)
+    % function to combine two tables horizontally with all possible row combinations
     % parse inputs
     p = inputParser;
     addRequired(p, 'table1', @istable);
@@ -16,4 +17,5 @@ function stackTable = hCombineTable(table1, table2, varargin)
         [idx1, idx2] = ndgrid(1:height(table1), 1:height(table2));
         stackTable = [table1(idx1(:), :), table2(idx2(:), :)];
     end
+
 end

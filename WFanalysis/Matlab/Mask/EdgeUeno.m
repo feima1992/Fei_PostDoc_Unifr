@@ -1,5 +1,6 @@
 classdef EdgeUeno < handle
-
+    % EdgeUeno class for real coordinates (unit mm) of sensory and motor regions in Ueno et al. 2018
+    % MaskUeno class for mask of sensory and motor in a 512x512 matrix in Ueno et al. 2018
     properties
         coordsSensory
         coordsAvgMotor
@@ -36,26 +37,48 @@ classdef EdgeUeno < handle
             obj.coordsAvgMotor = mean(coordsMotor, 3);
         end
 
-        function result = WithinSensory(obj, xys)
-            figure('Color', 'w', 'Position', [100, 100, 800, 800]);
-            plot(polyshape(obj.coordsSensory(:, 1), obj.coordsSensory(:, 2)), 'FaceColor', 'none', 'EdgeColor', 'r');
+        function result = WithinSensory(obj, xys, plotFlag)
+            % check if the points provided are within the sensory region
+
+            if nargin < 3
+                plotFlag = false;
+            end
+
             result = inpolygon(xys(:, 1), xys(:, 2), obj.coordsSensory(:, 1), obj.coordsSensory(:, 2));
-            hold on;
-            plot(xys(result, 1), xys(result, 2), 'r.');
-            xlim([-4.5, 0.5]);
-            ylim([-2.5, 2.5]);
-            axis equal;
+
+            if plotFlag
+                figure('Color', 'w', 'Position', [100, 100, 800, 800]);
+                plot(polyshape(obj.coordsSensory(:, 1), obj.coordsSensory(:, 2)), 'FaceColor', 'none', 'EdgeColor', 'r');
+                hold on;
+                plot(xys(result, 1), xys(result, 2), 'r.');
+                xlim([-4.5, 0.5]);
+                ylim([-2.5, 2.5]);
+                axis equal;
+            end
+
         end
 
-        function result = WithinMotor(obj, xys)
-            figure('Color', 'w', 'Position', [100, 100, 800, 800]);
-            plot(polyshape(obj.coordsAvgMotor(:, 1), obj.coordsAvgMotor(:, 2)), 'FaceColor', 'none', 'EdgeColor', 'r');
+        function result = WithinMotor(obj, xys, plotFlag)
+            % check if the points provided are within the motor region
+
+            if nargin < 3
+                plotFlag = false;
+            end
+
             result = inpolygon(xys(:, 1), xys(:, 2), obj.coordsAvgMotor(:, 1), obj.coordsAvgMotor(:, 2));
-            hold on;
-            plot(xys(result, 1), xys(result, 2), 'r.');
-            xlim([-4.5, 0.5]);
-            ylim([-2.5, 2.5]);
-            axis equal;
+
+            if plotFlag
+                figure('Color', 'w', 'Position', [100, 100, 800, 800]);
+                plot(polyshape(obj.coordsAvgMotor(:, 1), obj.coordsAvgMotor(:, 2)), 'FaceColor', 'none', 'EdgeColor', 'r');
+                hold on;
+                plot(xys(result, 1), xys(result, 2), 'r.');
+                xlim([-4.5, 0.5]);
+                ylim([-2.5, 2.5]);
+                axis equal;
+            end
+
         end
+
     end
+
 end

@@ -40,7 +40,7 @@ classdef Frames < handle
             end
 
             % get frame size and peak frame
-            obj.GetframeSize(); obj.GetFramePeakId();obj.GetFramePeak();
+            obj.GetframeSize(); obj.GetFramePeakId(); obj.GetFramePeak();
 
         end
 
@@ -189,31 +189,32 @@ classdef Frames < handle
                 % determine connected components
                 CC = bwconncomp(cFrameGray);
                 % determine properties of connected components
-                cFrameProps = regionprops('table', CC, cFrameGray, 'Area', 'WeightedCentroid', 'MeanIntensity', 'MajorAxisLength', 'MinorAxisLength', 'Orientation', 'PixelValues','Extrema');
-                cFramePropsPixelIdxList = regionprops('table', CC, cFrameGray,'PixelIdxList');
-                cFramePropsPixelList = regionprops('table', CC, cFrameGray,'PixelList');
-                cFrameProps = [cFrameProps,cFramePropsPixelIdxList,cFramePropsPixelList]; %#ok<*AGROW>
+                cFrameProps = regionprops('table', CC, cFrameGray, 'Area', 'WeightedCentroid', 'MeanIntensity', 'MajorAxisLength', 'MinorAxisLength', 'Orientation', 'PixelValues', 'Extrema');
+                cFramePropsPixelIdxList = regionprops('table', CC, cFrameGray, 'PixelIdxList');
+                cFramePropsPixelList = regionprops('table', CC, cFrameGray, 'PixelList');
+                cFrameProps = [cFrameProps, cFramePropsPixelIdxList, cFramePropsPixelList]; %#ok<*AGROW>
                 % sort by area descending and add component id
                 cFrameProps = sortrows(cFrameProps, 'Area', 'descend');
 
                 % calculate left, right, top, bottom, width, height from Extrema
-                
 
                 % incase empty cFrameProps, add row with all 0s
                 if height(cFrameProps) == 0
                     cFrameProps = array2table(nan(1, width(cFrameProps)), 'VariableNames', cFrameProps.Properties.VariableNames);
                     cFrameProps.PixelIdxList = {nan};
-                    cFrameProps.PixelList = {nan(1,2)};
+                    cFrameProps.PixelList = {nan(1, 2)};
                     cFrameProps.PixelValues = {nan};
                     cFrameProps.WeightedCentroid = [nan, nan];
-                    cFrameProps.Extrema = {nan(8,2)};
+                    cFrameProps.Extrema = {nan(8, 2)};
                 else
+
                     if ~iscell(cFrameProps.PixelValues)
                         cFrameProps.PixelValues = num2cell(cFrameProps.PixelValues);
-                        cFrameProps.PixelList = num2cell(cFrameProps.PixelList,2);
+                        cFrameProps.PixelList = num2cell(cFrameProps.PixelList, 2);
                     end
+
                 end
-                
+
                 % add component id to the table
                 cFrameProps.ComponentId = (1:height(cFrameProps))';
                 % add current frame id to the table
@@ -222,7 +223,6 @@ classdef Frames < handle
                 cFrameProps.FrameTime = repmat(obj.frameTime(i), height(cFrameProps), 1);
                 % add frame peak to the table
                 cFrameProps.FramePeak = repmat(obj.framePeakId == i, height(cFrameProps), 1);
-
 
                 % calculate edge, component, lateral, medial, anterior,posterior most position for each connected component
 
@@ -242,10 +242,10 @@ classdef Frames < handle
                     % add current connected component to the table
                     cFrameProps.Component{j} = cFrameGray .* cComponentMask;
                     % get lateral, medial, anterior, posterior most position from Extrema or from PixelList
-                    cFrameProps.LateralMost{j} = min(cFrameProps.Extrema{j}([7,8],1),[],'omitnan');
-                    cFrameProps.MedialMost{j} = max(cFrameProps.Extrema{j}([3,4],1),[],'omitnan');
-                    cFrameProps.AnteriorMost{j} = min(cFrameProps.Extrema{j}([1,2],2),[],'omitnan');
-                    cFrameProps.PosteriorMost{j} = max(cFrameProps.Extrema{j}([5,6],2),[],'omitnan');
+                    cFrameProps.LateralMost{j} = min(cFrameProps.Extrema{j}([7, 8], 1), [], 'omitnan');
+                    cFrameProps.MedialMost{j} = max(cFrameProps.Extrema{j}([3, 4], 1), [], 'omitnan');
+                    cFrameProps.AnteriorMost{j} = min(cFrameProps.Extrema{j}([1, 2], 2), [], 'omitnan');
+                    cFrameProps.PosteriorMost{j} = max(cFrameProps.Extrema{j}([5, 6], 2), [], 'omitnan');
                     cFrameProps.SpanLateralMedial{j} = cFrameProps.MedialMost{j} - cFrameProps.LateralMost{j};
                     cFrameProps.SpanAnteriorPosterior{j} = cFrameProps.PosteriorMost{j} - cFrameProps.AnteriorMost{j};
                 end
@@ -257,7 +257,6 @@ classdef Frames < handle
 
             obj.frameProps = framePropsTable;
         end
-
 
         % get the size of the frameData: size
         function obj = GetframeSize(obj)
@@ -280,11 +279,13 @@ classdef Frames < handle
         function ImShowFrame(obj, frameId, varargin)
 
             if nargin == 1
+
                 if length(obj.frameSize) == 2
                     frameId = 1;
                 else
                     frameId = 1:obj.frameSize(3);
                 end
+
             end
 
             % create figure
@@ -313,7 +314,7 @@ classdef Frames < handle
             % create figure
             figure('color', 'w');
             % play frames
-            imshowFrame(obj.frameData(:, :, 1), 'title', sprintf('%.1f s', obj.frameTime(1)),'abmTemplate',0);
+            imshowFrame(obj.frameData(:, :, 1), 'title', sprintf('%.1f s', obj.frameTime(1)), 'abmTemplate', 0);
             % get current axes and image handle
             axesHandle = gca; % get current axes
             imageHandle = findobj(axesHandle, 'Type', 'Image'); % get image handle

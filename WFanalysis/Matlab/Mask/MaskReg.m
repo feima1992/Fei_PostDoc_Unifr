@@ -103,7 +103,7 @@ classdef MaskReg < handle
             end
 
             imagesc(ax, abmModuleMapPlot); axis image; axis off; colormap(colorcube(length(selectRoiPlot) + 3));
-            
+
             % remap the color map
             cColor = colormap;
             cColor(1, :) = [0, 0, 0]; % black edge color

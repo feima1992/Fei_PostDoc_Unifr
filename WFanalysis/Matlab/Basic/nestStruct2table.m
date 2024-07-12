@@ -10,7 +10,7 @@ function outTable = nestStruct2table(nestStruct)
     %          {'a'    }    1
     %          {'b.c'  }    2
     %          {'b.d'  }    3
-    
+
     %% Validate input
     arguments
         nestStruct struct
@@ -20,9 +20,10 @@ function outTable = nestStruct2table(nestStruct)
     % get all field names
     filedPath = fieldPath(nestStruct);
     % initialize output table
-    outTable = table(filedPath,cell(size(filedPath)),'VariableNames',{'fieldPath','value'});
+    outTable = table(filedPath, cell(size(filedPath)), 'VariableNames', {'fieldPath', 'value'});
     % fill output table
-    for i = 1:size(outTable,1)
+    for i = 1:size(outTable, 1)
         outTable.value(i) = {eval(['nestStruct.' outTable.fieldPath{i}])};
     end
+
 end

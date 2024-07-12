@@ -73,6 +73,7 @@ for i = 1:height(data1Table)
     dataTable.fieldPath{i} = fieldName1;
     dataTable.value{i} = value;
 end
+
 % convert the table back to struct
 data = nestStruct2table(dataTable);
 data.SessionData.nTrials = ntrials1 + ntrials2;
@@ -92,14 +93,17 @@ trialStr = cellfun(@(x)regexp(x, '(?<=_)\d{4}(?=.tif)', 'match', 'once'), tifFil
 trialNum = cellfun(@str2double, trialStr);
 trialNumNew = trialNum + ntrials1;
 trialStrNew = cellstr(num2str(trialNumNew, '%04d'));
-tifFiles.pathNew = cellfun(@(x, y,z)strrep(x, y,z), tifFiles.path, trialStr,trialStrNew, 'UniformOutput', false);
+tifFiles.pathNew = cellfun(@(x, y, z)strrep(x, y, z), tifFiles.path, trialStr, trialStrNew, 'UniformOutput', false);
 % rename the tif files
 for i = 1:height(tifFiles)
+
     try
         movefile(tifFiles.path{i}, tifFiles.pathNew{i});
     catch
         continue
     end
+
 end
+
 % save the tifFiles table in case of mistake
 writetable(tifFiles, fullfile(wf_path2, 'rename.txt'), 'Delimiter', '\t');

@@ -28,6 +28,7 @@ function imshowMultiFrames(frameCell, options)
                 'title', options.title{iFrame}, ...
                 'abmTemplate', options.abmTemplate);
         end
+
     else
 
         if nFrames > 3
@@ -56,4 +57,5 @@ function imshowMultiFrames(frameCell, options)
     if ~isempty(options.sgtitle)
         sgtitle(options.sgtitle);
     end
+
 end

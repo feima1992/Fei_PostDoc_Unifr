@@ -141,6 +141,7 @@ classdef FileTable_Act_Reg_Opto < FileTable_Act_Reg
                         end
 
                     end
+
                 case 'all'
             end
 
@@ -177,22 +178,23 @@ classdef FileTable_Act_Reg_Opto < FileTable_Act_Reg
 
             obj.pairedFileTable = innerjoin(lazerOn, lazerOff, 'Keys', {'namefull', 'mouse', 'session', 'actType', 'mvtDir'});
         end
-        
+
         % function to export filetable
         function obj = ExportCsv(obj)
-        
-        % Load file if not already done
-        if ~isfield(obj.fileTable, 'ComponentId')
-            obj.CalActProps();
-        end
-        % Get current date as postfix
-        datePostfix = datestr(now,'yyyymmdd');
-        fileName = ['ActRegionProps_LimbMvtOpto_' datePostfix '.csv'];
-        filePath = fullfile(Param().folderFigure, fileName);
-        % Save to csv by calling superclass method
-        ExportCsv@FileTable(obj, filePath);
-        % Display message
-        disp(['File saved as ' filePath]);
+
+            % Load file if not already done
+            if ~isfield(obj.fileTable, 'ComponentId')
+                obj.CalActProps();
+            end
+
+            % Get current date as postfix
+            datePostfix = datestr(now, 'yyyymmdd');
+            fileName = ['ActRegionProps_LimbMvtOpto_' datePostfix '.csv'];
+            filePath = fullfile(Param().folderFigure, fileName);
+            % Save to csv by calling superclass method
+            ExportCsv@FileTable(obj, filePath);
+            % Display message
+            disp(['File saved as ' filePath]);
         end
 
     end

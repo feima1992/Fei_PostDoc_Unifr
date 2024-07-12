@@ -1,5 +1,5 @@
 function fileTable = loadDataBpodWhiskerMagnet(fileTable)
-    fileTable.data = cellfun(@(X)loadDataBpodWhiskerMagnetHelper(X.SessionData),fileTable.data,'UniformOutput',false);
+    fileTable.data = cellfun(@(X)loadDataBpodWhiskerMagnetHelper(X.SessionData), fileTable.data, 'UniformOutput', false);
 end
 
 function trialInfo = loadDataBpodWhiskerMagnetHelper(data)

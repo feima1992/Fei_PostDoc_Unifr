@@ -20,9 +20,11 @@ function tableOut = cleanVar(tableIn, columns, varargin)
     %% clean columns
     % filter columns that not a property of the table
     columns = columns(ismember(columns, tableIn.Properties.VariableNames));
+
     if isempty(columns)
         warning('the columns input is empty or does not match any of the table properties')
     end
+
     % clean columns of the table
     switch method
         case 'remove'

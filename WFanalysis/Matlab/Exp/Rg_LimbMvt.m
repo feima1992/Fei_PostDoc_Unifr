@@ -22,7 +22,7 @@ classdef Rg_LimbMvt < Rg
                 fprintf('IMcorr data loaded ...\n');
             else
                 fprintf('Loading IMcorr data from raw file...\n');
-                obj.objRegIMcorr = FileTable_Act_Reg_IMcorr(obj.dataPath, obj.dataFilter).AddGroupInfo(obj.expInfo);
+                obj.objRegIMcorr = FileTable_Act_Reg_IMcorr(obj.dataPath, obj.dataFilter).AddGroupInfo(obj.expInfo).LoadIMcorr();
                 objFileTableActReg = obj.objRegIMcorr;
                 save(fullfile(obj.resultPath, 'Rg_LimbMvt_ActIMcorr.mat'), 'objFileTableActReg', '-v7.3');
                 fprintf('IMcorr data loaded ...\n');
@@ -52,7 +52,7 @@ classdef Rg_LimbMvt < Rg
             obj.objRegIMcorrCopy.CalActMap(obj.actMapThre);
             obj.figActMap = figure('color', 'w');
             tiledlayout(2, 2);
-            titleStr = {'Control', 'Post-Training', 'Control', 'Parallel-Control'};
+            titleStr = {'Pre-training', 'Post-training', 'Control-pre', 'Control-post'};
 
             for i = 1:4
                 nexttile(i)
@@ -87,7 +87,7 @@ classdef Rg_LimbMvt < Rg
 
             avgVar = {'group', 'phase'};
             obj.objRegIMcorrCopy.CalAvgIMcorr(avgVar);
-            obj.objRegIMcorrCopy.CalActMap(actMapThre);
+            obj.objRegIMcorrCopy.CalActMap(obj.actMapThre);
             edgeData = obj.objRegIMcorrCopy.fileTable;
 
             for i = 1:4
@@ -104,7 +104,7 @@ classdef Rg_LimbMvt < Rg
 
             avgVar = {'group', 'phase', 'mouse'};
             obj.objRegIMcorrCopy.CalAvgIMcorr(avgVar);
-            obj.objRegIMcorrCopy.CalActMap(actMapThre);
+            obj.objRegIMcorrCopy.CalActMap(obj.actMapThre);
 
             obj.objRegIMcorrCopy.CalActProps();
 
@@ -112,14 +112,14 @@ classdef Rg_LimbMvt < Rg
             centroidData = centroidData((centroidData.FramePeak == 1 & centroidData.ComponentId == 1), :);
 
             % plot data
-            centroidDataTrainedBaseline = centroidData((ismember(centroidData.group, 'Trained') & ismember(centroidData.phase, 'Baseline')), :);
-            edgeDataTrainedBaseline = edgeData((ismember(edgeData.group, 'Trained') & ismember(edgeData.phase, 'Baseline')), :);
+            centroidDataTrainedBaseline = centroidData((ismember(centroidData.group, 'Trained') & ismember(centroidData.phase, 'Pre-training')), :);
+            edgeDataTrainedBaseline = edgeData((ismember(edgeData.group, 'Trained') & ismember(edgeData.phase, 'Pre-training')), :);
             centroidDataTrainedPost = centroidData((ismember(centroidData.group, 'Trained') & ismember(centroidData.phase, 'Post-Training')), :);
             edgeDataTrainedPost = edgeData((ismember(edgeData.group, 'Trained') & ismember(edgeData.phase, 'Post-Training')), :);
-            centroidDataUntrainedBaseline = centroidData((ismember(centroidData.group, 'Untrained') & ismember(centroidData.phase, 'Baseline')), :);
-            edgeDataUntrainedBaseline = edgeData((ismember(edgeData.group, 'Untrained') & ismember(edgeData.phase, 'Baseline')), :);
-            centroidDataUntrainedPost = centroidData((ismember(centroidData.group, 'Untrained') & ismember(centroidData.phase, 'parallel-control')), :);
-            edgeDataUntrainedPost = edgeData((ismember(edgeData.group, 'Untrained') & ismember(edgeData.phase, 'parallel-control')), :);
+            centroidDataUntrainedBaseline = centroidData((ismember(centroidData.group, 'Control') & ismember(centroidData.phase, 'Control-pre')), :);
+            edgeDataUntrainedBaseline = edgeData((ismember(edgeData.group, 'Control') & ismember(edgeData.phase, 'Control-pre')), :);
+            centroidDataUntrainedPost = centroidData((ismember(centroidData.group, 'Control') & ismember(centroidData.phase, 'Control-post')), :);
+            edgeDataUntrainedPost = edgeData((ismember(edgeData.group, 'Control') & ismember(edgeData.phase, 'Control-post')), :);
 
             pix2mm_X = 18;
             obj.figActEdge = figure('color', 'w');
@@ -198,7 +198,7 @@ classdef Rg_LimbMvt < Rg
                 'YLim', 256 + [-2000 2000] / pix2mm_X, ...
                 'XGrid', 'on', ...
                 'YGrid', 'on')
-            title('Untrained')
+            title('Control')
 
             maskUeno = MaskUeno();
             hold on;

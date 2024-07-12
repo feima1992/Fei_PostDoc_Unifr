@@ -1,4 +1,4 @@
-# Start MATLAB sessions for wide field imaging and behavior recording
+# Start MATLAB sessions for wide field imaging and reach-grasp-drink behavior recording
 # By Fei 2023-02-21
 # Automatically assign cameras to MATLAB sessions
 

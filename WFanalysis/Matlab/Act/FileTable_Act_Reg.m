@@ -17,7 +17,7 @@ classdef FileTable_Act_Reg < FileTable_Act
             else
                 fileExt = varargin{1};
             end
-            
+
             % create movie for each file in fileTable
             for i = 1:height(obj.fileTable)
                 % load file
@@ -30,6 +30,7 @@ classdef FileTable_Act_Reg < FileTable_Act
                 brainOutline = bwskel(brainOutline);
                 % convert to double
                 brainOutline = double(brainOutline);
+
                 switch fileExt
                     case 'avi'
                         % create movie avi file
@@ -38,30 +39,37 @@ classdef FileTable_Act_Reg < FileTable_Act
                         objVideo.FrameRate = 10;
                         open(objVideo);
                         fprintf('  Creating movie for %d/%d: %s\n', i, height(obj.fileTable), movieFile);
+
                         for j = 1:size(IMcorrREG, 3)
                             % rescale frame to [0, 255]
-                            frameData = im2uint8(rescale(IMcorrREG(:,:,j)));
+                            frameData = im2uint8(rescale(IMcorrREG(:, :, j)));
                             % make the brain outline black in the image
                             frameData(brainOutline == 1) = 0;
                             % write frame to video
                             writeVideo(objVideo, frameData);
                         end
+
                         close(objVideo);
                     case 'tif'
                         % create movie tif file
                         movieFile = strrep(obj.fileTable.path{i}, '.mat', '_movie.tif');
                         fprintf('  Creating movie for %d/%d: %s\n', i, height(obj.fileTable), movieFile);
+
                         for j = 1:size(IMcorrREG, 3)
                             % rescale frame to [0, 255]
-                            frameData = im2uint8(rescale(IMcorrREG(:,:,j)));
+                            frameData = im2uint8(rescale(IMcorrREG(:, :, j)));
                             % make the brain outline black in the image
                             frameData(brainOutline == 1) = 0;
                             % write frame to video
                             imwrite(frameData, movieFile, 'WriteMode', 'append');
                         end
+
                 end
+
             end
+
         end
+
     end
 
 end

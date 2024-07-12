@@ -75,9 +75,10 @@ function filesWfBpod = alignWfBpod(filesWfBpod, P)
                     case 2
                         [~, frIDalignTrigger] = min(abs(imTimesBlue - filesWfBpod.t2ndMvt(i)));
                 end
+
             case 'LimbTouchStimWF'
                 [~, frIDalignTrigger] = min(abs(imTimesBlue - filesWfBpod.tStim(i)));
-    
+
             case 'WhiskerMagnetWF'
                 [~, frIDalignTrigger] = min(abs(imTimesBlue - filesWfBpod.tMagnetOn(i)));
         end

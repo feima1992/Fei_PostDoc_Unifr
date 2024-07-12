@@ -44,11 +44,13 @@ classdef FileTable_Act_Raw < FileTable_Act
                     case 'cranialWindowVesselPattern'
                         regActRawCranialWindowVesselPattern(obj.fileTable.pathRef{i}, strrep(obj.fileTable.path{i}, '.mat', '.tif'), Param());
                 end
+
                 try
                     set(findobj('Name', 'WF registration'), 'Position', guiPosition);
                     waitfor(objReg, 'objButtonRegFlag', 1);
                     pause(10)
                 end
+
             end
 
         end
@@ -56,7 +58,7 @@ classdef FileTable_Act_Raw < FileTable_Act
         %% Create movie
         function obj = ActVideo(obj)
 
-                options.frameRate  = 5;
+            options.frameRate = 5;
 
             % create movie for each file in fileTable
             for i = 1:height(obj.fileTable)

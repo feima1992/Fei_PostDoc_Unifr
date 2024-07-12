@@ -6,7 +6,6 @@ function argout = findSession(argin, sFormat)
 
     %   argout: string or cell array of strings
 
-
     %% Validate input
     if ischar(argin)
         argin = {argin};
@@ -46,4 +45,5 @@ function argout = findSession(argin, sFormat)
     if iscell(argout) && numel(argout) == 1
         argout = argout{1};
     end
+
 end

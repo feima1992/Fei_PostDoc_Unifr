@@ -4,16 +4,18 @@ classdef FileTable_Bpod < FileTable
     methods
         %% Constructor
         function obj = FileTable_Bpod(topDir, varargin)
+
             if nargin < 1
                 topDisk = mfilename('fullpath');
                 userDir = regexp(topDisk, '.*Fei', 'match', 'once');
                 topDir = fullfile(userDir, 'Bpod');
             end
+
             % Call superclass constructor
-            obj = obj@FileTable(topDir,varargin{:});
+            obj = obj@FileTable(topDir, varargin{:});
             % Filter the table to keep only the bpod files
             obj.Filter('path', @(X)contains(X, 'Bpod') & contains(X, '.mat'));
-            obj.Remove('path', @(X)contains(X, 'DefaultSettings') | contains(X, 'FakeSubject')| contains(X, 'Protocols'));
+            obj.Remove('path', @(X)contains(X, 'DefaultSettings') | contains(X, 'FakeSubject') | contains(X, 'Protocols'));
             % Add the stimulus type to the table
             AddStimulusType(obj);
             % Remove unsuccessful session files from the table
@@ -30,9 +32,11 @@ classdef FileTable_Bpod < FileTable
         function RemoveUnsuccessfulSessions(obj)
             % Anonymous function to find the record time
             findRecTimeFun = @(X)str2double(regexp(X, '(?<=_)\d{6}(?=\.mat)', 'match', 'once'));
+
             if ~iscell(obj.fileTable.namefull)
                 obj.fileTable.namefull = {obj.fileTable.namefull};
             end
+
             obj.fileTable.recTime = cellfun(findRecTimeFun, obj.fileTable.namefull);
             % Group the table by mouse, session and stimulus type and keep only the latest record time for each group
             obj.fileTable = groupfilter(obj.fileTable, {'mouse', 'session', 'stimulusType'}, @(X) X == max(X), 'recTime');
@@ -51,6 +55,7 @@ classdef FileTable_Bpod < FileTable
             else
                 obj.fileTable.data = cellfun(@load, obj.fileTable.path, 'UniformOutput', false);
             end
+
             % Notify the user that the files have been loaded
             fprintf('   Loading bpod data from %d files took %.1f seconds\n', height(obj.fileTable), toc);
         end

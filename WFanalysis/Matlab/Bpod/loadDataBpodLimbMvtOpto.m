@@ -1,5 +1,5 @@
 function fileTable = loadDataBpodLimbMvtOpto(fileTable)
-    fileTable.data = cellfun(@(X)loadDataBpodLimbMvtHelperOpto(X.SessionData),fileTable.data,'UniformOutput',false);
+    fileTable.data = cellfun(@(X)loadDataBpodLimbMvtHelperOpto(X.SessionData), fileTable.data, 'UniformOutput', false);
 end
 
 function trialInfo = loadDataBpodLimbMvtHelperOpto(data)
@@ -30,9 +30,10 @@ function trialInfo = loadDataBpodLimbMvtHelperOpto(data)
     trialInfo = cell2table(trialInfo, 'VariableNames', {'trial', 't1stMvt', 't2ndMvt', 'outcome', 'outcomeIdx', 'mvtDir', 'duration', 'lazerOn', 'pawHoldGood'});
     % add pawJitter detection results
     try % if hold signal is recorded
-        goodTrials = detectPawJitter(trialInfo(trialInfo.outcomeIdx>=3,:).trial,data);
+        goodTrials = detectPawJitter(trialInfo(trialInfo.outcomeIdx >= 3, :).trial, data);
         trialInfo.pawHoldGood(goodTrials) = 1;
     catch % if hold signal is not recorded
         trialInfo.pawHoldGood = NaN(data.nTrials, 1);
     end
+
 end

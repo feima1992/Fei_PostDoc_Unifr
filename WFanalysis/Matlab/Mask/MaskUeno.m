@@ -1,14 +1,15 @@
 classdef MaskUeno < handle
-
+    % EdgeUeno class for real coordinates (unit mm) of sensory and motor regions in Ueno et al. 2018
+    % MaskUeno class for mask of sensory and motor in a 512x512 matrix in Ueno et al. 2018
     properties
         googleSheetId = '1-XTF4-4M5bmvE0f--Af_9g4OFYRJFnMmkXPPNAn1L6c';
         googleSheetBook = 'Coord';
         mm2pixels = 1/0.018;
-        maskSensory
-        coordsSensory
-        maskMotor
-        coordsMotor
-        maskNotSensoryMotor
+        maskSensory % mask of sensory region in a 512x512 matrix
+        coordsSensory % coordinates of sensory region in a 512x512 matrix
+        maskMotor % mask of motor region in a 512x512 matrix
+        coordsMotor % coordinates of motor region in a 512x512 matrix
+        maskNotSensoryMotor % mask of not sensory and motor region in a 512x512 matrix
     end
 
     methods

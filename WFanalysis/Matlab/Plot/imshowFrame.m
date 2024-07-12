@@ -1,12 +1,12 @@
 function im = imshowFrame(frameData, options)
     % parse inputs
     arguments
-        frameData (:,:) {mustBeNumeric}
-        options.plot (1,1) {mustBeNumericOrLogical} = true
+        frameData (:, :) {mustBeNumeric}
+        options.plot (1, 1) {mustBeNumericOrLogical} = true
         options.ax = gca
         options.cmap = fire(256)
         options.title {mustBeTextScalar} = ''
-        options.abmTemplate (1,1) {mustBeNumericOrLogical} = false
+        options.abmTemplate (1, 1) {mustBeNumericOrLogical} = false
     end
 
     % plot the frame
@@ -14,8 +14,8 @@ function im = imshowFrame(frameData, options)
 
     % plot the image if requested
     if options.plot
-        imshow(im,[]);
-        
+        imshow(im, []);
+
         axis image;
         axis off;
 
@@ -26,5 +26,7 @@ function im = imshowFrame(frameData, options)
         if options.abmTemplate
             plotABMtemplate(options.ax, 'w');
         end
+
     end
+
 end

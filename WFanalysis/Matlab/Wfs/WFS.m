@@ -49,7 +49,7 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
 
         end
 
-        %% compute the trig data 
+        %% compute the trig data
         function obj = GetTrigData(obj, redo)
 
             % set redo to false if not provided
@@ -240,6 +240,7 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
                 trigData.sigCells = [trigData.sigCells, fitResult]; % sigCellIdx, mu, sigma, r2, badFit, PDround, pTuning
                 obj.fileTable.trigData{i} = trigData;
             end
+
         end
 
         %% function to convert coordinates to mm
@@ -293,7 +294,7 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
 
             if isempty(obj.fileTableExp)
                 % expend trigData to single cell level
-                fileTableExp = table(); %#ok<*PROP> 
+                fileTableExp = table(); %#ok<*PROP>
 
                 for i = 1:height(obj.fileTable)
                     % get the trigData
@@ -349,6 +350,7 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
                     end
 
                 end
+
                 obj.fileTableExp = fileTableExp;
                 % save the fileTableExp
                 obj.Save();
@@ -450,9 +452,11 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
                 set(obj.guiH.buttonGoodH, 'BackgroundColor', [0.94, 0.94, 0.94]);
                 % delete the plots
                 delete(obj.guiH.tunePanel.Children)
+
                 if obj.guiH.gaussPanel.Title == "Gaussian Fit"
                     delete(obj.guiH.gaussPanel.Children)
                 end
+
                 % set the flag to 1 to continue to the next cell
                 obj.flagNext = 1;
                 % update the checkedIdx
@@ -463,6 +467,7 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
 
         %% Check the sigResp cells
         function obj = CheckSigResp(obj, checkFilterName)
+
             if nargin < 2
                 checkFilterName = 'AllsigResp';
             end
@@ -485,7 +490,7 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
             if ~ismember('goodResp', obj.fileTableExp.Properties.VariableNames)
                 obj.fileTableExp.goodResp = zeros(height(obj.fileTableExp), 1);
             end
-            
+
             % initialize the checkedIdx and checkResult
             if isempty(obj.checkedIdx)
                 obj.checkedIdx = zeros(height(obj.fileTableExp), 1);
@@ -536,7 +541,7 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
                     copyobj(fig1.Children, obj.guiH.tunePanel);
                     close(fig1);
                     % plot the gaussian fit
-                    [~,fig2] = fitGaussOut(trigData, cellIdx, 1);
+                    [~, fig2] = fitGaussOut(trigData, cellIdx, 1);
                     copyobj(fig2.Children, obj.guiH.gaussPanel);
                     close(fig2);
                     % wait for button press
@@ -549,6 +554,7 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
 
         %% function to check spatial footprints
         function obj = CheckSpatialFootprints(obj, options)
+
             arguments
                 obj;
                 options.respScoreThresh (1, 1) double = 2;
@@ -568,7 +574,6 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
             if ~options.plotNoResp
                 data = data(data.goodResp >= respScoreThresh, :);
             end
-
 
             if ~strcmp(options.mouseFilter, 'All')
                 data = data(ismember(data.mouse, options.mouseFilter), :);
@@ -621,8 +626,8 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
             set(obj.guiH.gaussPanel, 'Title', 'Spatial Footprints');
 
             % fullscreen size of figH
-            set(obj.guiH.figH, 'Position', [50,200,1600,750]);
-            axH = uiaxes(obj.guiH.gaussPanel, 'Position', [10,10,600,600]);
+            set(obj.guiH.figH, 'Position', [50, 200, 1600, 750]);
+            axH = uiaxes(obj.guiH.gaussPanel, 'Position', [10, 10, 600, 600]);
             s = scatter(axH, x, -y, sizeMap, colorMap, 'filled', 'MarkerEdgeColor', 'none'); % flip the y because now anterior is negative
             s.AlphaData = alphaMap;
             s.MarkerFaceAlpha = 'flat';
@@ -670,8 +675,7 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
 
             % set the axis labels
             xlabel(axH, 'Medial-Lateral (mm)');
-            ylabel(axH, 'Anterior-Posterior (mm)'); 
-         
+            ylabel(axH, 'Anterior-Posterior (mm)');
 
             % select point in the plot to display the cell index
             set(s, 'ButtonDownFcn', @(src, event) ClickCallback(src, event, obj, data));
@@ -735,7 +739,7 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
 
         end
 
-        %% 
+        %%
         %% save the object without the gui handles
         function obj = Save(obj)
             guiHCopy = obj.guiH;
@@ -743,7 +747,7 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
             save(fullfile(obj.folderPath, 'TrigData.mat'), 'obj');
             fprintf('Saved WFS object to %s\n', obj.folderPath);
             obj.guiH = guiHCopy;
-            saveObjToStruct(obj,fullfile(obj.folderPath, 'TrigDataStruct.mat'))
+            saveObjToStruct(obj, fullfile(obj.folderPath, 'TrigDataStruct.mat'))
         end
 
         %% load the object
@@ -753,7 +757,8 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
         end
 
         %% plot the spatial footprints
-        function PlotSpatialFootprints(obj,options)
+        function PlotSpatialFootprints(obj, options)
+
             arguments
                 obj;
                 options.respScoreThresh (1, 1) double = 2;
@@ -862,7 +867,6 @@ classdef WFS < matlab.mixin.Copyable % Handle class with copy functionality
             % set the axis labels
             xlabel(axH, 'Medial-Lateral (mm)');
             ylabel(axH, 'Anterior-Posterior (mm)');
-
 
         end
 

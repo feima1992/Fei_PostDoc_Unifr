@@ -294,7 +294,7 @@ classdef regActRawClearSkull < handle
             end
 
             obj.images.IMactREGexp = imresize(obj.images.IMactREGexp, 1/2);
-            
+
             XYrefCTX = obj.params.XYrefCTX;
             XYref = obj.params.XYref;
             regFile = fullfile(obj.P.dir.regXy, [obj.baseName '_XYreg.mat']);
@@ -303,9 +303,9 @@ classdef regActRawClearSkull < handle
             if ~exist(regFile, 'file')
                 save(regFile, 'XYrefCTX', 'XYref');
             end
-            
+
             %% register all frames of act
-            S = load(strrep(obj.imACT,'tif','mat'));
+            S = load(strrep(obj.imACT, 'tif', 'mat'));
 
             param = S.P;
             t = S.t;
@@ -321,7 +321,7 @@ classdef regActRawClearSkull < handle
             imMaskREG = imwarp(imMask, tform, 'OutputView', imref2d(size(imMask)));
 
             % finally save all the data to actREG.mat
-            save(strrep(strrep(obj.imACT,'Raw','Reg'),'ACT.tif','REG.mat'), 'IMcorrREG', 'param', 't', 'imMaskREG');
+            save(strrep(strrep(obj.imACT, 'Raw', 'Reg'), 'ACT.tif', 'REG.mat'), 'IMcorrREG', 'param', 't', 'imMaskREG');
         end
 
         function loadREGcoordsCallback(obj, src, evt)

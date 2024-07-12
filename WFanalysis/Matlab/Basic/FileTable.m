@@ -1,6 +1,9 @@
 classdef FileTable < matlab.mixin.Copyable
     % FileTable - A table of files and their properties
-
+    % FileTable is a superclass whose subclasses are:
+    %   - FileTable_Bpod: A table of Bpod files and their properties
+    %   - FileTable_Tif: A table of Tif files and their properties
+    
     %% Properties
     properties
         topDir % The top directory to search for files
@@ -18,7 +21,7 @@ classdef FileTable < matlab.mixin.Copyable
             % Create the file table
             obj.fileTable = findFile(obj.topDir, varargin{:});
             % Filter the file table
-            obj.Remove('path', @(X)contains(X, 'Archive')|contains(X, '$RECYCLE'));
+            obj.Remove('path', @(X)contains(X, 'Archive') | contains(X, '$RECYCLE'));
             % Clean column, remove the {name, ext, sizeMB} columns
             obj.CleanVar({'name', 'ext', 'sizeMB'}, 'remove');
             % Add the mouse and session names
@@ -57,9 +60,11 @@ classdef FileTable < matlab.mixin.Copyable
 
         %% Export the fileTable to a csv file
         function obj = ExportCsv(obj, csvFile)
+
             if nargin < 2
                 csvFile = fullfile(pwd, 'fileTable.csv');
             end
+
             % Export the fileTable to a csv file
             writetable(obj.fileTable, csvFile);
         end

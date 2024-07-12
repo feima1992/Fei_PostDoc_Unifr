@@ -5,7 +5,7 @@ classdef FileTable_Tif_Wf_SingleCell < FileTable_Tif_Wf
         function obj = FileTable_Tif_Wf_SingleCell(varargin)
             obj = obj@FileTable_Tif_Wf(varargin{:});
         end
-        
+
         %% GetRefImage
         function GetRefImage(obj)
             % Get the reference image for each mouse and session (the earliest trial)
@@ -29,24 +29,24 @@ classdef FileTable_Tif_Wf_SingleCell < FileTable_Tif_Wf
             end
 
         end
-        
+
         %% AddFrameTime
         function AddFrameTime(obj)
             % add frameIdx and frameTime to the fileTable
             for i = 1:height(obj.fileTable)
                 % Get the frameIdx and frameTime
-                [frameTime,frameIdx] = loadTifTime(obj.fileTable.path{i});
+                [frameTime, frameIdx] = loadTifTime(obj.fileTable.path{i});
                 % Add the frameIdx and frameTime to the fileTable
                 obj.fileTable.frameIdx{i} = frameIdx;
                 obj.fileTable.frameTime{i} = frameTime;
             end
-            
-                obj.fileTable.frameInfo = cellfun(@(X,Y)table(X,Y, 'VariableNames', {'frameIdx', 'frameTime'}), obj.fileTable.frameIdx, obj.fileTable.frameTime, 'UniformOutput', false);
-                obj.fileTable.frameIdx = [];
-                obj.fileTable.frameTime = [];
-                obj.fileTable = expendColumn(obj.fileTable, 'frameInfo');
+
+            obj.fileTable.frameInfo = cellfun(@(X, Y)table(X, Y, 'VariableNames', {'frameIdx', 'frameTime'}), obj.fileTable.frameIdx, obj.fileTable.frameTime, 'UniformOutput', false);
+            obj.fileTable.frameIdx = [];
+            obj.fileTable.frameTime = [];
+            obj.fileTable = expendColumn(obj.fileTable, 'frameInfo');
         end
-        
+
     end
 
 end

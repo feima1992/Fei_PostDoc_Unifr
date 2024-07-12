@@ -1,9 +1,11 @@
-## Wrapped class to perform widefield imaging with single cell resolution using mescore package CNMF-E algorithm
+## Wrapped class to perform analysis of widefield imaging with single cell resolution using mescore package CNMF-E algorithm
 # By fei 2023-02-21 mafei1992@outlook.com
 # To install caiman along with mescore: [GitHub - nel-lab/mesmerize-core: High level pandas-based API for batch analysis of Calcium Imaging data using CaImAn](https://github.com/nel-lab/mesmerize-core)
 # To call caiman and mescore functions: [User Guide — mesmerize-core 0.3.0 documentation](https://mesmerize-core.readthedocs.io/en/latest/user_guide.html)
 # The detected neuron components can be exported to a .mat file for further analysis in MATLAB
-# Simple usage: WFS().RunAll().Eval().Register().ExportSessionRegister().ExportCoordAndTrace(); 
+# Simple usage: WFS(batch_folder = r"D:\Data\SingleCellData", data_folder_name ="mesmerize-cnmfe").RunAll().Eval().Register().ExportSessionRegister().ExportCoordAndTrace(); 
+# Parameters can be adjusted in the properties of the class and also the input arguments of the methods
+
 #%% Importing necessary libraries
 import os
 import re
@@ -39,7 +41,7 @@ def search_file(top_dir, include_strs=[], exclude_strs=[]):
             exclude_str, file_name), file_list))
     return list(set(file_list))
 
-#%% Zscore function add to mc
+#%% Zscore function add to mesmerize_core
 def run_zscore(self, offset_method ="floor", sn_method = "logmexp", range_ff = [0.25,0.5]):
             
     # get the estimates for the item

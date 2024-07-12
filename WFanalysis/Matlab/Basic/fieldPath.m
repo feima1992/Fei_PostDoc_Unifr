@@ -1,6 +1,6 @@
 function path = fieldPath(nestStruct)
     % generate a cell array of field paths for a nested struct with recrusive function
-    % e.g. FieldPath(struct('a',struct('b',1,'c',2),'d',3))
+    % e.g. fieldPath(struct('a',struct('b',1,'c',2),'d',3))
     % returns {'a.b','a.c','d'}
 
     if ~isstruct(nestStruct)
@@ -24,5 +24,6 @@ function path = fieldPath(nestStruct)
         end
 
     end
-    path = reshape(path,[],1);
+
+    path = reshape(path, [], 1);
 end

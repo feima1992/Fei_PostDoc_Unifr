@@ -23,27 +23,31 @@ function result = loadIMcorrHelper(filePath, varargin)
     varNames = {whos('-file', filePath).name};
     % load IMcorr
     load(filePath, options.loadIMcorrType);
-    
+
     % load Mask
     switch options.imMaskSource
         case 'external'
             imMask = load('imMask.mat');
             imMask = imMask.imMask;
         case 'internal'
+
             if ismember('imMask', varNames)
                 load(filePath, 'imMask');
             elseif ismember('imMaskREG', varNames)
                 load(filePath, 'imMaskREG');
                 imMask = imMaskREG;
             end
+
         case 'draw'
             mouse = regexp(filePath, '[a-zA-Z]\d{4}(?=_)', 'match', 'once');
             session = regexp(filePath, '(?<=_)(20){0,1}2[3-9][0-1][0-9][0-3][0-9](?=_)', 'match', 'once');
             imREF = imread(fullfile(Param().dir.refImage, [mouse, '_', session, '_REF.tif']));
             imREF = imREF(end:-1:1, end:-1:1);
+
             if contains(mouse, '237')
                 imREF = imread(fullfile(Param().dir.refImage, [mouse, '_', session, '_REF.jpg']));
             end
+
             f0 = figure();
             imshow(imadjust(imREF));
             hF = drawpolygon();
@@ -52,14 +56,15 @@ function result = loadIMcorrHelper(filePath, varargin)
             save(filePath, 'imMask', '-append');
             load(filePath, options.loadIMcorrType);
     end
-    
+
     % load t from params
     t = Param().wfAlign.frameTime;
-    
+
     % apply Gaussian filter to IMcorr if gaussFilterSigma is not 0
     if options.gaussFilterSigma == 0
-        result = Frames_IMcorr(eval(options.loadIMcorrType),t).ApplyMask(imMask).frameData;
+        result = Frames_IMcorr(eval(options.loadIMcorrType), t).ApplyMask(imMask).frameData;
     else
-        result = Frames_IMcorr(eval(options.loadIMcorrType),t).ApplyGaussLowPass(options.gaussFilterSigma).ApplyMask(imMask).frameData;
+        result = Frames_IMcorr(eval(options.loadIMcorrType), t).ApplyGaussLowPass(options.gaussFilterSigma).ApplyMask(imMask).frameData;
     end
+
 end

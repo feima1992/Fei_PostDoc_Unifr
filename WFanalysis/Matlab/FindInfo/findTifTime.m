@@ -1,6 +1,5 @@
 function argout = findTifTime(argin)
 
-
     %% Validate input
     if ischar(argin)
         argin = {argin};

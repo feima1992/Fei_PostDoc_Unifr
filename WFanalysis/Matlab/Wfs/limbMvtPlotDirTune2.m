@@ -1,4 +1,4 @@
-function figH = plotDirTune2(trigData, cellNum, options)
+function figH = limbMvtPlotDirTune2(trigData, cellNum, options)
 
     arguments
         trigData

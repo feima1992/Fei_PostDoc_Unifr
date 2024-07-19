@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-mouse = 's237[12456]'; % mouse selection
+mouse = 'v237[12456]'; % mouse selection
 topFolder = 'WFW_V237X'; % folder in bigdata sever
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -7,7 +7,7 @@ topFolder = 'WFW_V237X'; % folder in bigdata sever
 objParamLimbMvt = Param_LimbMvt_CranialWin_SingleCell();
 
 % Wf tif files
-objFileTableTifWf = FileTable_Tif_Wf_SingleCell('D:\Data\WFrecordings\',mouse);
+objFileTableTifWf = FileTable_Tif_Wf_SingleCell('E:\Data\WFrecordings\',mouse);
 
 % Bpod files
 objFileTableBpodLimbMvt = FileTable_Bpod_LimbMvt('Z:\users\Fei\Bpod\',mouse);

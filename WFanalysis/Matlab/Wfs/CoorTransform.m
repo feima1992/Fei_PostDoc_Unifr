@@ -1,4 +1,4 @@
-classdef CoorTransform < handle
+classdef CoorTransform < matlab.mixin.Copyable % Handle class with copy functionality
     %% Properties
     properties
         % folder
@@ -37,7 +37,7 @@ classdef CoorTransform < handle
             % get the folder of the reference image
             funcPath = mfilename('fullpath');
             funcDisk = funcPath(1:3);
-            obj.folder = [funcDisk, 'users\Fei\DataAnalysis\Utilities\CoorTransformWF\'];
+            obj.folder = [funcDisk, 'users\Fei\DataAnalysis\Utilities\CoorTransformSingleCell\'];
         end
 
         function obj = Init(obj, refImage, recImage)
@@ -117,7 +117,7 @@ classdef CoorTransform < handle
 
             % try to load the object of this mouse if it exists
             try
-                objMouse = load(fullfile(obj.folder, [obj.mouse(2:end), '.mat'])).obj;
+                objMouse = load(fullfile(obj.folder, ['s',obj.mouse(2:end), '.mat'])).obj;
                 obj.refPointsCoorPixel = objMouse.refPointsCoorPixel;
                 obj.refPointsCoorReal = objMouse.refPointsCoorReal;
                 obj.bregmaCoorPixel = objMouse.bregmaCoorPixel;
@@ -142,7 +142,7 @@ classdef CoorTransform < handle
             % convert the unit
             obj = obj.ConvertUnit();
             % save the Transformer
-            obj.Save(1);
+            obj.Save();
 
         end
 
@@ -258,8 +258,6 @@ classdef CoorTransform < handle
             % draw the window center
             obj.objSelectRefPoints.winCenterPoint = drawpoint(obj.objSelectRefPoints.imAxes, 'Position', obj.winCenterCoorPixel, 'Color', 'y', 'Label', 'Window center');
 
-            % save the object
-            obj.Save();
         end
 
         function coorMm = ConvertPixel2mm(obj, xyPixel)
@@ -324,10 +322,10 @@ classdef CoorTransform < handle
         end
 
         %% Save the object
-        function Save(obj, overwriteFlag)
+        function obj = Save(obj, overwriteFlag)
             % check the overwrite flag
             if nargin == 1
-                overwriteFlag = false;
+                overwriteFlag = true;
             end
 
             % save the mouse specific object
@@ -340,21 +338,16 @@ classdef CoorTransform < handle
             end
 
             if ~isfile(savePathMouse) || overwriteFlag
-                obj.Reset();
-                save(savePathMouse, 'obj');
+                obj2 = copy(obj);
+                obj2.recImage = [];
+                obj2.recImageRecovered = [];
+                obj2.controlPointsRec = [];
+                obj2.transformer = [];
+                obj2.objSelectRefPoints = [];
+                a.obj = obj2;
+                save(savePathMouse, '-struct','a','obj')
                 fprintf('The object is saved to %s\n', savePathMouse);
             end
-
-        end
-
-        %% Reset the object
-        function obj = Reset(obj)
-            % reset the object
-            obj.recImage = [];
-            obj.recImageRecovered = [];
-            obj.controlPointsRec = [];
-            obj.transformer = [];
-            obj.objSelectRefPoints = [];
 
         end
 

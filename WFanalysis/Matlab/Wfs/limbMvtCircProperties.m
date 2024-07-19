@@ -1,4 +1,4 @@
-function circProps = circProperties(trigData, cNum)
+function circProps = limbMvtCircProperties(trigData, cNum)
     mvtDirs = (0:45:360 - 45)';
     stats = trigData.Stats{cNum};
     stats(:, 1) = stats(:, 1) - min(stats(:, 1));

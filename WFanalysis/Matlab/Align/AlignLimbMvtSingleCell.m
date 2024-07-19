@@ -88,7 +88,7 @@ classdef AlignLimbMvtSingleCell < handle
                     if sum(tfFrameKeep) ~= numel(obj.param.wfAlign.frameTime)
                         fprintf('Error: number of frames does not match the frame time')
                         % enter debug mode
-                        keyboard
+                        continue
                     end
 
                     % load the imaging data for the current trial

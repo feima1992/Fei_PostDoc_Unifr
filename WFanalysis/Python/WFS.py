@@ -13,15 +13,13 @@ import numpy as np
 import pandas as pd
 import hdf5storage
 
-from caiman.base.rois import register_multisession
 from upsetplot import from_contents, UpSet
 from matplotlib import pyplot as plt
 
+from caiman.base.rois import register_multisession
 import mesmerize_core as mc
 from mesmerize_viz import *
-
 from mesmerize_core.caiman_extensions.cnmf import cnmf_cache
-
 from caiman.source_extraction.cnmf.deconvolution import GetSn
 
 if os.name == "nt":
@@ -42,8 +40,7 @@ def search_file(top_dir, include_strs=[], exclude_strs=[]):
     return list(set(file_list))
 
 #%% Zscore function add to mesmerize_core
-def run_zscore(self, offset_method ="floor", sn_method = "logmexp", range_ff = [0.25,0.5]):
-            
+def run_zscore(self, offset_method ="floor", sn_method = "logmexp", range_ff = [0.25,0.5]):      
     # get the estimates for the item
     cnmfe = self.get_output()
     denoised_traces = cnmfe.estimates.C
@@ -129,10 +126,12 @@ class WFS:
         return self
     
     #%% Method to update the batch dataframe file
-    def Update(self, errorRetry = False):
+    def Update(self, errorRetry = True):
         # remove the items having outputs error from the batch if errorRetry is True
-        if errorRetry: self.RemoveError()
-                
+        if errorRetry:
+            # remove the items having outputs error from the batch
+            self.RemoveItemError()
+                            
         # scan all the tiffs in the batch folder
         self.tif_files = search_file(self.batch_folder, [".tif"])
         if len(self.tif_files) == 0:
@@ -173,10 +172,11 @@ class WFS:
                 
         # sort the rows of the dataframe
         self.df = self.df.sort_values(by = ['algo','item_name'], ascending = [False, True], ignore_index=True)
+        self.df.caiman.save_to_disk()
         return self
     
     #%% Method to filter items in the batch dataframe
-    def Index(self, mouse = None, session = None, algo = None, runSuccess = None):
+    def Index(self, mouse = None, session = None, algo = None, runSuccess = None, notFile = None):
         # select the rows of the dataframe
         df = self.df
         idx = np.ones(len(df), dtype = bool)
@@ -193,19 +193,36 @@ class WFS:
         if runSuccess is not None:
             idx_runSuccess = np.array(runResults) == runSuccess
             idx = np.logical_and(idx, idx_runSuccess)
+        if notFile is not None:
+            input_movie_path = df['input_movie_path']
+            input_movie_full_path = [self.mc.get_parent_raw_data_path().joinpath(X) for X in input_movie_path]
+            idx_notFile = [not os.path.exists(X) for X in input_movie_full_path]
+            idx = np.logical_and(idx, idx_notFile)
         # convert to numeric index
         idx = np.where(idx)[0]
-        # if no index found return all the indexes
-        if len(idx) == 0:
-            print("No items found with the given parameters, returning indexes of all items")
-            idx = np.arange(len(df))
         return idx
     
     #%% remove error items from the batch dataframe
-    def RemoveError(self):
-        for i in self.Index(runSuccess = False):
-            self.df.caiman.remove_item(self.df.iloc[i].uuid)
-            print(f"Item {self.df.iloc[i].item_name} with algo {self.df.iloc[i].algo} has error outputs and removed from the batch")
+    def RemoveItemError(self):
+        idx = self.Index(runSuccess = False)
+        uuids = self.df.iloc[idx].uuid
+        items = self.df.iloc[idx].item_name
+        algos = self.df.iloc[idx].algo
+        for i, uuid in enumerate(uuids):
+            self.df.caiman.remove_item(uuid)
+            print(f"Error {algos.iloc[i]} item {items.iloc[i]} removed")
+        return self
+    
+    #%% remove items that do not have the corresponding file
+    def RemoveItemWithoutFile(self):
+        idx = self.Index(notFile = True)
+        uuids = self.df.iloc[idx].uuid
+        items = self.df.iloc[idx].item_name
+        algos = self.df.iloc[idx].algo
+        files = self.df.iloc[idx].input_movie_path
+        for i, uuid in enumerate(uuids):
+            self.df.caiman.remove_item(uuid)
+            print(f"Witout file {algos.iloc[i]} item {items.iloc[i]} removed: {files.iloc[i]}")
         return self
     
     #%% Method to run the item selected with mouse session and algorithm         
@@ -219,7 +236,7 @@ class WFS:
                 if process.__class__.__name__ == "DummyProcess":
                     self.df = self.df.caiman.reload_from_disk()
             else:
-                print(f"Item {self.df.iloc[i].item_name} with algo {self.df.iloc[i].algo} already processed")
+                print(f"{self.df.iloc[i].algo} item {self.df.iloc[i].item_name} already processed")
         self.Update()
         return self
     

@@ -1,4 +1,4 @@
-function [fitStats, figH] = fitGaussOut(trigData, cNum, plotFlag)
+function [fitStats, figH] = limbMvtFitGaussOut(trigData, cNum, plotFlag)
 
     if nargin < 3
         plotFlag = 0;

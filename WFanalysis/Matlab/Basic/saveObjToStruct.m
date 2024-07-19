@@ -1,4 +1,4 @@
-function saveToStruct(obj, filename)
+function saveObjToStruct(obj, filename)
     % Save object properties to a struct and then save the struct to a file
     % So that the object can be loaded later without the class definition
     varname = inputname(1);

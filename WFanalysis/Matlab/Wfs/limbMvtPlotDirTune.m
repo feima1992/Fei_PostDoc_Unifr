@@ -1,4 +1,4 @@
-function figH = plotDirTune(trigData, cellNum)
+function figH = limbMvtPlotDirTune(trigData, cellNum)
 
 plotMap = [6 3 2 1 4 7 8 9];
 angles = [0:pi/4:2*pi-pi/4]';
